@@ -29,6 +29,14 @@ func main() {
 			{
 				Name:  "sync",
 				Usage: "Sync repo via config",
+				Flags: []cli.Flag{
+					&cli.IntFlag{
+						Name:    "concurrency",
+						Aliases: []string{"c"},
+						Usage:   "Git operation concurrency",
+						Value:   100,
+					},
+				},
 				Action: func(c *cli.Context) error {
 					// ). Get current dir
 					dir, err := os.Getwd()
@@ -56,10 +64,11 @@ func main() {
 					}
 
 					(&gitup.Runner{
-						Hub:    r,
-						Git:    config.GitConfig,
-						Cwd:    config.Cwd,
-						Logger: base.NewDefaultLogger(),
+						Hub:         r,
+						Git:         config.GitConfig,
+						Cwd:         config.Cwd,
+						Concurrency: c.Int("concurrency"),
+						Logger:      base.NewDefaultLogger(),
 					}).Execute()
 
 					return nil

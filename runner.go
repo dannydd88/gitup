@@ -12,10 +12,11 @@ import (
 
 // Runner -
 type Runner struct {
-	Hub    RepoHub
-	Git    GitConfig
-	Cwd    string
-	Logger base.Logger
+	Hub         RepoHub
+	Git         GitConfig
+	Cwd         string
+	Concurrency int
+	Logger      base.Logger
 }
 
 // Execute -
@@ -36,40 +37,49 @@ func (r *Runner) Execute() {
 		}
 	}
 
-	// ). Sync repos
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	dst := make(chan string)
-	defer close(dst)
-	{
-		count := len(repos)
-		var wg sync.WaitGroup
-		wg.Add(count)
-		r.Logger.Log("[Runner]Start sync repos ->", count)
+	// ). Prepare context
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// ). Prepare git and ready to send
+	input := make(chan *Git)
+	defer close(input)
+	var wg sync.WaitGroup
+	go func() {
+		r.Logger.Log("[Runner]Start sync repos ->", len(repos))
 		for _, repo := range repos {
+			wg.Add(1)
 			url := base.String(repo.URL)
 			path := base.String(filepath.Join(r.Cwd, repo.FullPath))
-			g := NewGit(r.Logger, url, path, base.Bool(r.Git.Bare))
-			go func(g *Git) {
-				defer wg.Done()
-
-				err := g.Sync()
-				dst <- fmt.Sprintf("[Runner]Finish sync[%s] with error[%s]",
-					base.StringValue(g.path), err)
-			}(g)
+			input <- NewGit(r.Logger, url, path, base.Bool(r.Git.Bare))
 		}
+	}()
 
-		go func(ctx context.Context) {
-			defer cancel()
+	<-time.After(1 * time.Second)
 
-			r.Logger.Log("[Runner]Waiting syncing repo...")
-			wg.Wait()
-		}(ctx)
+	// ). Prepare taskRunners
+	output := make(chan string)
+	defer close(output)
+	taskRunners := make([]*taskRunner, r.Concurrency)
+	for i := 0; i < r.Concurrency; i++ {
+		taskRunners[i] = &taskRunner{
+			input:  input,
+			output: output,
+			wg:     &wg,
+			ctx:    ctx,
+		}
+		taskRunners[i].run()
 	}
+
+	go func() {
+		defer cancel()
+		r.Logger.Log("[Runner]Waiting syncing repo...")
+		wg.Wait()
+	}()
 
 	stop := false
 	for !stop {
 		select {
-		case m := <-dst:
+		case m := <-output:
 			r.Logger.Log(m)
 		case <-ctx.Done():
 			r.Logger.Log("[Runner]Done...")
@@ -77,4 +87,28 @@ func (r *Runner) Execute() {
 			break
 		}
 	}
+}
+
+type taskRunner struct {
+	input  chan *Git
+	output chan string
+	wg     *sync.WaitGroup
+	ctx    context.Context
+}
+
+func (t *taskRunner) run() {
+	go func() {
+		stop := false
+		for !stop {
+			select {
+			case g := <-t.input:
+				err := g.Sync()
+				t.output <- fmt.Sprintf("[Runner]Finish sync[%s] with error[%s]",
+					base.StringValue(g.path), err)
+				t.wg.Done()
+			case <-t.ctx.Done():
+				stop = true
+			}
+		}
+	}()
 }

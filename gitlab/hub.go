@@ -81,7 +81,7 @@ func (g *gitlab) fetchProjects() error {
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
-	dst := make(chan []byte, 2)
+	dst := make(chan []byte, 1)
 	defer close(dst)
 	{
 		var wg sync.WaitGroup
@@ -106,12 +106,12 @@ func (g *gitlab) fetchProjects() error {
 			}(i)
 		}
 
-		go func(ctx context.Context) {
+		go func() {
 			defer cancel()
 
 			fmt.Printf("[GitLab]Waiting fetching repo...\n")
 			wg.Wait()
-		}(ctx)
+		}()
 	}
 
 	var lastError error
@@ -130,7 +130,6 @@ func (g *gitlab) fetchProjects() error {
 		case <-ctx.Done():
 			fmt.Printf("[Gitlab]Done...\n")
 			stop = true
-			break
 		}
 	}
 
