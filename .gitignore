@@ -27,3 +27,6 @@
 
 # Project
 config.json
+
+# Packing
+out/
