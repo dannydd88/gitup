@@ -13,3 +13,17 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# vs code
+.vscode
+
+# Vim
+.sw[pon]
+*.sw[pon]
+.*.sw[po]
+
+# Mac
+.DS_Store
+
+# Project
+config.json

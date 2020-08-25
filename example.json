@@ -1,0 +1,15 @@
+{
+  "repo": {
+    "type": "gitlab",
+    "host": "www.xx.com",
+    "token": "123"
+  },
+  "cwd": "",
+  "git": {
+    "bare": false,
+    "groups": [
+      "123",
+      "321"
+    ]
+  }
+}
