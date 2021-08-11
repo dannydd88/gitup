@@ -34,7 +34,7 @@ func main() {
 						Name:    "concurrency",
 						Aliases: []string{"c"},
 						Usage:   "Git operation concurrency",
-						Value:   100,
+						Value:   10,
 					},
 				},
 				Action: func(c *cli.Context) error {
