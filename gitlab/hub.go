@@ -46,9 +46,30 @@ func (g *gitlab) ProjectsByGroup(group *string) ([]*gitup.Repo, error) {
 	if len(g.projects) == 0 {
 		g.fetchProjects()
 	}
-	result, ok := g.projects[base.StringValue(group)]
+	// ). check if need to search subgroup
+	prefix := base.StringValue(group)
+	subSearch := false
+	if strings.Contains(prefix, "/") {
+		prefix = prefix[:strings.IndexByte(prefix, '/')]
+		subSearch = true
+	}
+	// ). find repos about target root group
+	result, ok := g.projects[prefix]
 	if !ok {
 		return nil, fmt.Errorf("[GitLab]Not find projects in %s", *group)
+	}
+	if subSearch {
+		// ). filter subgroup
+		subResult := []*gitup.Repo{}
+		for _, r := range result {
+			if strings.HasPrefix(r.FullPath, base.StringValue(group)) {
+				subResult = append(subResult, r)
+			}
+		}
+		if len(subResult) == 0 {
+			return nil, fmt.Errorf("[GitLab]Not find projects in %s", *group)
+		}
+		result = subResult
 	}
 	return result, nil
 }
@@ -172,6 +193,7 @@ func convertToRepo(base *map[string][]*gitup.Repo, projects *[]project) {
 		// fmt.Printf("%s - %s\n", r.Group, r.URL)
 		ps, ok := (*base)[r.Group]
 		if !ok {
+			// the first repo insert about this group
 			(*base)[r.Group] = append([]*gitup.Repo{}, r)
 		} else {
 			(*base)[r.Group] = append(ps, r)

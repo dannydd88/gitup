@@ -21,6 +21,7 @@ type Runner struct {
 
 // Execute -
 func (r *Runner) Execute() {
+	r.Logger.Log("[Runner]Started...")
 	// ). Prepare repos
 	var repos []*Repo
 	if len(r.Git.Groups) == 0 {
@@ -30,6 +31,7 @@ func (r *Runner) Execute() {
 		for _, g := range r.Git.Groups {
 			result, err := r.Hub.ProjectsByGroup(base.String(g))
 			if err != nil {
+				r.Logger.Log("[Runner]Meet error ->", err)
 				continue
 			} else {
 				repos = append(repos, result...)
