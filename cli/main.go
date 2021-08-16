@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/dannydd88/gitup"
-	"github.com/dannydd88/gitup/base"
 	"github.com/dannydd88/gitup/gitlab"
+	"github.com/dannydd88/gobase/pkg/base"
 	"github.com/urfave/cli/v2"
 )
 

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/codeskyblue/go-sh"
-	"github.com/dannydd88/gitup/base"
+	"github.com/dannydd88/gobase/pkg/base"
 )
 
 // Git represent a set of git commands to one git repository and one local path

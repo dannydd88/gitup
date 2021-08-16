@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/dannydd88/gitup"
-	"github.com/dannydd88/gitup/base"
+	"github.com/dannydd88/gobase/pkg/base"
 )
 
 type gitlab struct {

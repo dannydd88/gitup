@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dannydd88/gitup/base"
+	"github.com/dannydd88/gobase/pkg/base"
 )
 
 // Runner -
