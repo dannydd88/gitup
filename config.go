@@ -7,9 +7,10 @@ import (
 
 // RepoConfig - repo setion of config.json
 type RepoConfig struct {
-	Type  string `json:"type"`
-	Host  string `json:"host"`
-	Token string `json:"token"`
+	Type           string `json:"type"`
+	Host           string `json:"host"`
+	Token          string `json:"token"`
+	FilterArchived bool   `json:"filter_archived,omitempty"`
 }
 
 // GitConfig - git setion of config.json

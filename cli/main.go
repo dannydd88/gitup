@@ -58,7 +58,7 @@ func main() {
 					var r gitup.RepoHub
 					switch strings.ToLower(config.RepoConfig.Type) {
 					case "gitlab":
-						r = gitlab.NewGitlab(&config.RepoConfig.Host, &config.RepoConfig.Token)
+						r = gitlab.NewGitlab(&config.RepoConfig)
 					default:
 						return fmt.Errorf("[Main]Unsupport repostory type")
 					}

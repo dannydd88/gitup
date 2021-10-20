@@ -3,11 +3,15 @@ package gitlab
 import (
 	"testing"
 
-	"github.com/dannydd88/gobase/pkg/base"
+	"github.com/dannydd88/gitup"
 )
 
 func TestConstruct(t *testing.T) {
-	r := NewGitlab(base.String("aaa.com"), base.String("bbb"))
+	c := &gitup.RepoConfig{
+		Host:  "aaa.com",
+		Token: "bbb",
+	}
+	r := NewGitlab(c)
 	nr, ok := r.(*gitlab)
 	if !ok || nr == nil {
 		t.Errorf("construct error %v", r)
@@ -42,5 +46,9 @@ const projectJson = `
 			"parent_id": 269,
 			"avatar_url": null,
 			"web_url": "https://git.xxx.com/groups/a-b/b-online"
-	}
+	},
+	"packages_enabled": true,
+	"empty_repo": false,
+	"archived": false,
+	"visibility": "private"
 }`

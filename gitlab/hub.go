@@ -16,17 +16,19 @@ import (
 )
 
 type gitlab struct {
-	host     *string
-	token    *string
-	projects map[string][]*gitup.Repo
+	host           *string
+	token          *string
+	projects       map[string][]*gitup.Repo
+	filterArchived bool
 }
 
 // NewGitlab -
-func NewGitlab(host, token *string) gitup.RepoHub {
+func NewGitlab(config *gitup.RepoConfig) gitup.RepoHub {
 	g := &gitlab{
-		host:     host,
-		token:    token,
-		projects: make(map[string][]*gitup.Repo),
+		host:           &config.Host,
+		token:          &config.Token,
+		projects:       make(map[string][]*gitup.Repo),
+		filterArchived: config.FilterArchived,
 	}
 	return g
 }
@@ -76,17 +78,18 @@ func (g *gitlab) ProjectsByGroup(group *string) ([]*gitup.Repo, error) {
 
 const (
 	perPage    = 100
-	projectURL = "https://%s/api/v4/projects?private_token=%s&page=%d&per_page=%d&simple=true"
+	projectURL = "https://%s/api/v4/projects?private_token=%s&page=%d&per_page=%d"
 )
 
 type project struct {
 	Name              string `json:"name"`
 	PathWithNamespace string `json:"path_with_namespace"`
 	RepoHTTPURL       string `json:"http_url_to_repo"`
+	Archived          bool   `json:"archived,omitempty"`
 }
 
 func (g *gitlab) fetchProjects() error {
-	resp, err := httpRequest(g.host, g.token, 1, perPage)
+	resp, err := httpRequest(g, 1, perPage)
 	if err != nil {
 		return err
 	}
@@ -113,7 +116,7 @@ func (g *gitlab) fetchProjects() error {
 			go func(page int) {
 				defer wg.Done()
 
-				resp, err = httpRequest(g.host, g.token, page, perPage)
+				resp, err = httpRequest(g, page, perPage)
 				if err != nil {
 					return
 				}
@@ -147,7 +150,7 @@ func (g *gitlab) fetchProjects() error {
 				lastError = err
 				break
 			}
-			convertToRepo(&g.projects, &v)
+			convertToRepo(&g.projects, &v, g.filterArchived)
 		case <-ctx.Done():
 			fmt.Printf("[Gitlab]Done...\n")
 			stop = true
@@ -157,12 +160,15 @@ func (g *gitlab) fetchProjects() error {
 	return lastError
 }
 
-func httpRequest(host, token *string, page, perPage int) (*http.Response, error) {
+func httpRequest(g *gitlab, page, perPage int) (*http.Response, error) {
 	url := fmt.Sprintf(projectURL,
-		base.StringValue(host),
-		base.StringValue(token),
+		base.StringValue(g.host),
+		base.StringValue(g.token),
 		page,
 		perPage)
+	if !g.filterArchived {
+		url += "&simple=true"
+	}
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -181,8 +187,11 @@ func readResponse(resp *http.Response) ([]byte, error) {
 	return body, nil
 }
 
-func convertToRepo(base *map[string][]*gitup.Repo, projects *[]project) {
+func convertToRepo(base *map[string][]*gitup.Repo, projects *[]project, filterArchived bool) {
 	for _, p := range *projects {
+		if filterArchived && p.Archived {
+			continue
+		}
 		g := p.PathWithNamespace[:strings.IndexByte(p.PathWithNamespace, '/')]
 		r := &gitup.Repo{
 			URL:      p.RepoHTTPURL,

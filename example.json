@@ -2,7 +2,8 @@
   "repo": {
     "type": "gitlab",
     "host": "www.xx.com",
-    "token": "123"
+    "token": "123",
+    "filter_archived": false
   },
   "cwd": "",
   "git": {
