@@ -7,13 +7,16 @@ import (
 	"sync"
 	"time"
 
+	"gitup/internal/config"
+	"gitup/pkg/git"
+
 	"github.com/dannydd88/gobase/pkg/base"
 )
 
 // Runner -
 type Runner struct {
 	Hub         RepoHub
-	Git         GitConfig
+	Git         config.GitConfig
 	Cwd         string
 	Concurrency int
 	Logger      base.Logger
@@ -43,7 +46,7 @@ func (r *Runner) Execute() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// ). Prepare git and ready to send
-	input := make(chan *Git)
+	input := make(chan *git.Git)
 	defer close(input)
 	var wg sync.WaitGroup
 	go func() {
@@ -52,7 +55,7 @@ func (r *Runner) Execute() {
 			wg.Add(1)
 			url := base.String(repo.URL)
 			path := base.String(filepath.Join(r.Cwd, repo.FullPath))
-			input <- NewGit(r.Logger, url, path, base.Bool(r.Git.Bare))
+			input <- git.NewGit(r.Logger, url, path, base.Bool(r.Git.Bare))
 		}
 	}()
 
@@ -92,7 +95,7 @@ func (r *Runner) Execute() {
 }
 
 type taskRunner struct {
-	input  chan *Git
+	input  chan *git.Git
 	output chan string
 	wg     *sync.WaitGroup
 	ctx    context.Context
@@ -106,7 +109,7 @@ func (t *taskRunner) run() {
 			case g := <-t.input:
 				err := g.Sync()
 				t.output <- fmt.Sprintf("[Runner]Finish sync[%s] with error[%s]",
-					base.StringValue(g.path), err)
+					base.StringValue(g.Path()), err)
 				t.wg.Done()
 			case <-t.ctx.Done():
 				stop = true

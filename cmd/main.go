@@ -7,8 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dannydd88/gitup"
-	"github.com/dannydd88/gitup/gitlab"
+	"gitup/internal/config"
+	"gitup/internal/gitlab"
+	"gitup/pkg/gitup"
+
 	"github.com/dannydd88/gobase/pkg/base"
 	"github.com/urfave/cli/v2"
 )
@@ -49,7 +51,7 @@ func main() {
 					if !filepath.IsAbs(configPath) {
 						configPath = filepath.Join(dir, configPath)
 					}
-					config, err := gitup.LoadConfig(base.String(configPath))
+					config, err := config.LoadConfig(base.String(configPath))
 					if err != nil {
 						return err
 					}

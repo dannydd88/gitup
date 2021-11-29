@@ -1,4 +1,4 @@
-package gitup
+package git
 
 import (
 	"io/ioutil"
@@ -35,6 +35,11 @@ func NewGit(logger base.Logger, url, path *string, bare *bool) *Git {
 	g.sess.Stderr = ioutil.Discard
 	g.sess.SetDir(*g.path)
 	return g
+}
+
+// Path -
+func (g *Git) Path() *string {
+	return g.path
 }
 
 // Sync - Sync a git repository, clone if is a new one, update otherwise

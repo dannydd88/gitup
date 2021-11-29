@@ -3,7 +3,7 @@ package gitlab
 import (
 	"testing"
 
-	"github.com/dannydd88/gitup"
+	"gitup"
 )
 
 func TestConstruct(t *testing.T) {

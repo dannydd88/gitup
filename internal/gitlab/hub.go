@@ -11,7 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dannydd88/gitup"
+	"gitup/internal/config"
+	"gitup/pkg/gitup"
+
 	"github.com/dannydd88/gobase/pkg/base"
 )
 
@@ -23,7 +25,7 @@ type gitlab struct {
 }
 
 // NewGitlab -
-func NewGitlab(config *gitup.RepoConfig) gitup.RepoHub {
+func NewGitlab(config *config.RepoConfig) gitup.RepoHub {
 	g := &gitlab{
 		host:           &config.Host,
 		token:          &config.Token,
