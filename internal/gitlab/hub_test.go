@@ -3,11 +3,11 @@ package gitlab
 import (
 	"testing"
 
-	"gitup"
+	"gitup/internal/config"
 )
 
 func TestConstruct(t *testing.T) {
-	c := &gitup.RepoConfig{
+	c := &config.RepoConfig{
 		Host:  "aaa.com",
 		Token: "bbb",
 	}

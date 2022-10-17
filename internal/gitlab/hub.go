@@ -14,7 +14,7 @@ import (
 	"gitup/internal/config"
 	"gitup/pkg/gitup"
 
-	"github.com/dannydd88/gobase/pkg/base"
+	"github.com/dannydd88/dd-go"
 )
 
 type gitlab struct {
@@ -51,7 +51,7 @@ func (g *gitlab) ProjectsByGroup(group *string) ([]*gitup.Repo, error) {
 		g.fetchProjects()
 	}
 	// ). check if need to search subgroup
-	prefix := base.StringValue(group)
+	prefix := dd.StringValue(group)
 	subSearch := false
 	if strings.Contains(prefix, "/") {
 		prefix = prefix[:strings.IndexByte(prefix, '/')]
@@ -66,7 +66,7 @@ func (g *gitlab) ProjectsByGroup(group *string) ([]*gitup.Repo, error) {
 		// ). filter subgroup
 		subResult := []*gitup.Repo{}
 		for _, r := range result {
-			if strings.HasPrefix(r.FullPath, base.StringValue(group)) {
+			if strings.HasPrefix(r.FullPath, dd.StringValue(group)) {
 				subResult = append(subResult, r)
 			}
 		}
@@ -164,8 +164,8 @@ func (g *gitlab) fetchProjects() error {
 
 func httpRequest(g *gitlab, page, perPage int) (*http.Response, error) {
 	url := fmt.Sprintf(projectURL,
-		base.StringValue(g.host),
-		base.StringValue(g.token),
+		dd.StringValue(g.host),
+		dd.StringValue(g.token),
 		page,
 		perPage)
 	if !g.filterArchived {

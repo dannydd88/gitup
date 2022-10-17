@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/codeskyblue/go-sh"
-	"github.com/dannydd88/gobase/pkg/base"
+	"github.com/dannydd88/dd-go"
 )
 
 // Git represent a set of git commands to one git repository and one local path
@@ -15,13 +15,13 @@ type Git struct {
 	url    *string
 	path   *string
 	bare   *bool
-	logger base.Logger
+	logger dd.Logger
 }
 
 // NewGit - Init a new Git instance
-func NewGit(logger base.Logger, url, path *string, bare *bool) *Git {
+func NewGit(logger dd.Logger, url, path *string, bare *bool) *Git {
 	// make sure |path| is exist
-	if !base.DirExists(path) {
+	if !dd.DirExists(path) {
 		os.MkdirAll(*path, os.ModePerm)
 	}
 	g := &Git{
@@ -45,14 +45,14 @@ func (g *Git) Path() *string {
 // Sync - Sync a git repository, clone if is a new one, update otherwise
 func (g *Git) Sync() error {
 	var checkPath string
-	if base.BoolValue(g.bare) {
-		checkPath = filepath.Join(base.StringValue(g.path), "HEAD")
+	if dd.BoolValue(g.bare) {
+		checkPath = filepath.Join(dd.StringValue(g.path), "HEAD")
 	} else {
-		checkPath = filepath.Join(base.StringValue(g.path), ".git", "HEAD")
+		checkPath = filepath.Join(dd.StringValue(g.path), ".git", "HEAD")
 	}
 
 	// update if repository already existed
-	if base.FileExists(base.String(checkPath)) {
+	if dd.FileExists(dd.String(checkPath)) {
 		return g.Update()
 	}
 	// else clone
@@ -61,7 +61,7 @@ func (g *Git) Sync() error {
 
 // Clone - clone a new git repository
 func (g *Git) Clone() error {
-	g.logger.Log("[Git]Clone repo ->", base.StringValue(g.path))
+	g.logger.Log("[Git]Clone repo ->", dd.StringValue(g.path))
 	params := []string{"clone"}
 	if *g.bare {
 		params = append(params, "--bare")
@@ -72,9 +72,9 @@ func (g *Git) Clone() error {
 
 // Update - update a git repository
 func (g *Git) Update() error {
-	g.logger.Log("[Git]Update repo ->", base.StringValue(g.path))
+	g.logger.Log("[Git]Update repo ->", dd.StringValue(g.path))
 	var p string
-	if base.BoolValue(g.bare) {
+	if dd.BoolValue(g.bare) {
 		p = "fetch"
 	} else {
 		p = "pull"

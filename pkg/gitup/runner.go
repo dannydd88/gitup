@@ -10,7 +10,7 @@ import (
 	"gitup/internal/config"
 	"gitup/pkg/git"
 
-	"github.com/dannydd88/gobase/pkg/base"
+	"github.com/dannydd88/dd-go"
 )
 
 // Runner -
@@ -19,7 +19,7 @@ type Runner struct {
 	Git         config.GitConfig
 	Cwd         string
 	Concurrency int
-	Logger      base.Logger
+	Logger      dd.Logger
 }
 
 // Execute -
@@ -32,7 +32,7 @@ func (r *Runner) Execute() {
 	} else {
 		repos = []*Repo{}
 		for _, g := range r.Git.Groups {
-			result, err := r.Hub.ProjectsByGroup(base.String(g))
+			result, err := r.Hub.ProjectsByGroup(dd.String(g))
 			if err != nil {
 				r.Logger.Log("[Runner]Meet error ->", err)
 				continue
@@ -53,9 +53,9 @@ func (r *Runner) Execute() {
 		r.Logger.Log("[Runner]Start sync repos ->", len(repos))
 		for _, repo := range repos {
 			wg.Add(1)
-			url := base.String(repo.URL)
-			path := base.String(filepath.Join(r.Cwd, repo.FullPath))
-			input <- git.NewGit(r.Logger, url, path, base.Bool(r.Git.Bare))
+			url := dd.String(repo.URL)
+			path := dd.String(filepath.Join(r.Cwd, repo.FullPath))
+			input <- git.NewGit(r.Logger, url, path, dd.Bool(r.Git.Bare))
 		}
 	}()
 
@@ -109,7 +109,7 @@ func (t *taskRunner) run() {
 			case g := <-t.input:
 				err := g.Sync()
 				t.output <- fmt.Sprintf("[Runner]Finish sync[%s] with error[%s]",
-					base.StringValue(g.Path()), err)
+					dd.StringValue(g.Path()), err)
 				t.wg.Done()
 			case <-t.ctx.Done():
 				stop = true

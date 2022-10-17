@@ -11,7 +11,7 @@ import (
 	"gitup/internal/gitlab"
 	"gitup/pkg/gitup"
 
-	"github.com/dannydd88/gobase/pkg/base"
+	"github.com/dannydd88/dd-go"
 	"github.com/urfave/cli/v2"
 )
 
@@ -51,7 +51,7 @@ func main() {
 					if !filepath.IsAbs(configPath) {
 						configPath = filepath.Join(dir, configPath)
 					}
-					config, err := config.LoadConfig(base.String(configPath))
+					config, err := config.LoadConfig(dd.String(configPath))
 					if err != nil {
 						return err
 					}
@@ -70,7 +70,7 @@ func main() {
 						Git:         config.GitConfig,
 						Cwd:         config.Cwd,
 						Concurrency: c.Int("concurrency"),
-						Logger:      base.NewDefaultLogger(),
+						Logger:      dd.NewDefaultLogger(),
 					}).Execute()
 
 					return nil
