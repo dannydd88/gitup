@@ -27,6 +27,7 @@
 
 # Project
 config.json
+config.yaml
 
 # Packing
 out/

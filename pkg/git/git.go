@@ -1,7 +1,7 @@
 package git
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -31,8 +31,8 @@ func NewGit(logger dd.Logger, url, path *string, bare *bool) *Git {
 		bare:   bare,
 		logger: logger,
 	}
-	g.sess.Stdout = ioutil.Discard
-	g.sess.Stderr = ioutil.Discard
+	g.sess.Stdout = io.Discard
+	g.sess.Stderr = io.Discard
 	g.sess.SetDir(*g.path)
 	return g
 }
@@ -45,14 +45,14 @@ func (g *Git) Path() *string {
 // Sync - Sync a git repository, clone if is a new one, update otherwise
 func (g *Git) Sync() error {
 	var checkPath string
-	if dd.BoolValue(g.bare) {
-		checkPath = filepath.Join(dd.StringValue(g.path), "HEAD")
+	if dd.Val(g.bare) {
+		checkPath = filepath.Join(dd.Val(g.path), "HEAD")
 	} else {
-		checkPath = filepath.Join(dd.StringValue(g.path), ".git", "HEAD")
+		checkPath = filepath.Join(dd.Val(g.path), ".git", "HEAD")
 	}
 
 	// update if repository already existed
-	if dd.FileExists(dd.String(checkPath)) {
+	if dd.FileExists(dd.Ptr(checkPath)) {
 		return g.Update()
 	}
 	// else clone
@@ -61,7 +61,7 @@ func (g *Git) Sync() error {
 
 // Clone - clone a new git repository
 func (g *Git) Clone() error {
-	g.logger.Log("[Git]Clone repo ->", dd.StringValue(g.path))
+	g.logger.Log("[Git]", "Clone repo ->", dd.Val(g.path))
 	params := []string{"clone"}
 	if *g.bare {
 		params = append(params, "--bare")
@@ -72,9 +72,9 @@ func (g *Git) Clone() error {
 
 // Update - update a git repository
 func (g *Git) Update() error {
-	g.logger.Log("[Git]Update repo ->", dd.StringValue(g.path))
+	g.logger.Log("[Git]", "Update repo ->", dd.Val(g.path))
 	var p string
-	if dd.BoolValue(g.bare) {
+	if dd.Val(g.bare) {
 		p = "fetch"
 	} else {
 		p = "pull"
