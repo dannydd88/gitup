@@ -2,9 +2,10 @@ package command
 
 import (
 	"fmt"
-	"gitup/internal/infra"
-	"gitup/pkg/gitup"
 	"os"
+
+	"github.com/dannydd88/gitup/internal/infra"
+	"github.com/dannydd88/gitup/pkg/gitup"
 
 	"github.com/dannydd88/dd-go"
 	"github.com/urfave/cli/v2"

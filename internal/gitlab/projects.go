@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"gitup/internal/infra"
-	"gitup/pkg/gitup"
+	"github.com/dannydd88/gitup/internal/infra"
+	"github.com/dannydd88/gitup/pkg/gitup"
 
 	"github.com/dannydd88/dd-go"
 	gitlabapi "github.com/xanzy/go-gitlab"

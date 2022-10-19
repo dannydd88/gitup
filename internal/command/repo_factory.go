@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"gitup/internal/gitlab"
-	"gitup/internal/infra"
-	"gitup/pkg/gitup"
+	"github.com/dannydd88/gitup/internal/gitlab"
+	"github.com/dannydd88/gitup/internal/infra"
+	"github.com/dannydd88/gitup/pkg/gitup"
 
 	"github.com/dannydd88/dd-go"
 )

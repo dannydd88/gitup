@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"gitup/internal/command"
-	"gitup/internal/infra"
+	"github.com/dannydd88/gitup/internal/command"
+	"github.com/dannydd88/gitup/internal/infra"
 
 	"github.com/urfave/cli/v2"
 )

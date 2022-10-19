@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"gitup/pkg/git"
+	"github.com/dannydd88/gitup/pkg/git"
 
 	"github.com/dannydd88/dd-go"
 )

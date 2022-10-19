@@ -1,4 +1,4 @@
-module gitup
+module github.com/dannydd88/gitup
 
 go 1.19
 
