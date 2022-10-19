@@ -6,17 +6,22 @@ import (
 	"path/filepath"
 	"sync"
 
-	"gitup/internal/infra"
 	"gitup/pkg/git"
 
 	"github.com/dannydd88/dd-go"
 )
 
+type SyncConfig struct {
+	Bare   bool
+	Groups []*string
+}
+
 // Syncer
 type Syncer struct {
 	Api        RepoListor
-	SyncConfig *infra.SyncConfig
+	SyncConfig *SyncConfig
 	Cwd        *string
+	TaskRunner dd.TaskRunner
 	Logger     dd.Logger
 }
 
@@ -57,7 +62,7 @@ func (s *Syncer) Go() {
 		path := dd.String(filepath.Join(dd.Val(s.Cwd), repo.FullPath))
 		git := git.NewGit(s.Logger, url, path, s.SyncConfig.Bare)
 		c := dd.Bind3(doSyncGitRepo, git, output, &wg)
-		infra.GetWorkerPoolRunner().Post(c)
+		s.TaskRunner.Post(c)
 	}
 
 	// ). async wait task done

@@ -19,7 +19,7 @@ type RepoConfig struct {
 
 // SyncConfig - sync setion of config.yaml
 type SyncConfig struct {
-	Bare   *bool     `yaml:"bare"`
+	Bare   bool      `yaml:"bare"`
 	Groups []*string `yaml:"groups,omitempty"`
 }
 

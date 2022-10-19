@@ -14,12 +14,12 @@ type Git struct {
 	sess   *sh.Session
 	url    *string
 	path   *string
-	bare   *bool
+	bare   bool
 	logger dd.Logger
 }
 
 // NewGit - Init a new Git instance
-func NewGit(logger dd.Logger, url, path *string, bare *bool) *Git {
+func NewGit(logger dd.Logger, url, path *string, bare bool) *Git {
 	// make sure |path| is exist
 	if !dd.DirExists(path) {
 		os.MkdirAll(*path, os.ModePerm)
@@ -45,7 +45,7 @@ func (g *Git) Path() *string {
 // Sync - Sync a git repository, clone if is a new one, update otherwise
 func (g *Git) Sync() error {
 	var checkPath string
-	if dd.Val(g.bare) {
+	if g.bare {
 		checkPath = filepath.Join(dd.Val(g.path), "HEAD")
 	} else {
 		checkPath = filepath.Join(dd.Val(g.path), ".git", "HEAD")
@@ -63,7 +63,7 @@ func (g *Git) Sync() error {
 func (g *Git) Clone() error {
 	g.logger.Log("[Git]", "Clone repo ->", dd.Val(g.path))
 	params := []string{"clone"}
-	if *g.bare {
+	if g.bare {
 		params = append(params, "--bare")
 	}
 	params = append(params, *g.url, *g.path)
@@ -74,7 +74,7 @@ func (g *Git) Clone() error {
 func (g *Git) Update() error {
 	g.logger.Log("[Git]", "Update repo ->", dd.Val(g.path))
 	var p string
-	if dd.Val(g.bare) {
+	if g.bare {
 		p = "fetch"
 	} else {
 		p = "pull"

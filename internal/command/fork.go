@@ -93,7 +93,8 @@ func NewForkCommand() *cli.Command {
 			(&gitup.Forker{
 				Api:         forker,
 				ForkConfigs: forkConfigs,
-				Logger:      dd.NewDefaultLogger(),
+				TaskRunner:  infra.GetWorkerPoolRunner(),
+				Logger:      infra.GetLogger(),
 			}).Go()
 
 			return nil

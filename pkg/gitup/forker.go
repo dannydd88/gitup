@@ -3,7 +3,6 @@ package gitup
 import (
 	"context"
 	"fmt"
-	"gitup/internal/infra"
 	"sync"
 
 	"github.com/dannydd88/dd-go"
@@ -20,6 +19,7 @@ type ForkConfig struct {
 type Forker struct {
 	Api         RepoForker
 	ForkConfigs []*ForkConfig
+	TaskRunner  dd.TaskRunner
 	Logger      dd.Logger
 }
 
@@ -69,7 +69,7 @@ func (f *Forker) Go() {
 
 			// ). async do fork
 			c := dd.Bind4(doFork, f.Api, detail, output, &wg)
-			infra.GetWorkerPoolRunner().Post(c)
+			f.TaskRunner.Post(c)
 		}
 	}
 

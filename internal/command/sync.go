@@ -5,7 +5,6 @@ import (
 	"gitup/internal/infra"
 	"gitup/pkg/gitup"
 
-	"github.com/dannydd88/dd-go"
 	"github.com/urfave/cli/v2"
 )
 
@@ -28,11 +27,16 @@ func NewSyncCommand() *cli.Command {
 			}
 
 			// ). construct syncer and run
+			syncConfig := &gitup.SyncConfig{
+				Bare:   config.SyncConfig.Bare,
+				Groups: config.SyncConfig.Groups,
+			}
 			(&gitup.Syncer{
 				Api:        listor,
-				SyncConfig: config.SyncConfig,
+				SyncConfig: syncConfig,
 				Cwd:        config.Cwd,
-				Logger:     dd.NewDefaultLogger(),
+				TaskRunner: infra.GetWorkerPoolRunner(),
+				Logger:     infra.GetLogger(),
 			}).Go()
 
 			return nil
