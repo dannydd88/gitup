@@ -13,25 +13,37 @@ import (
 	gitlabapi "github.com/xanzy/go-gitlab"
 )
 
-type gitlab struct {
-	host           *string
-	token          *string
+const (
+	perPage = 100
+)
+
+type gitlabListor struct {
+	gitlabContext
 	projects       map[string][]*gitup.Repo
 	filterArchived bool
 }
 
-// NewGitlab -
-func NewGitlab(config *infra.RepoConfig) gitup.RepoHub {
-	g := &gitlab{
-		host:           config.Host,
-		token:          config.Token,
-		projects:       make(map[string][]*gitup.Repo),
-		filterArchived: dd.Val(config.FilterArchived),
+// NewListor
+// Helper function to create a |RepoListor|'s gitlab implement
+func NewListor(config *infra.RepoConfig) (gitup.RepoListor, error) {
+	// ). construct gitlab client
+	c, err := newGitlabClient(config.Token, config.Host)
+	if err != nil {
+		return nil, err
 	}
-	return g
+
+	// ). construct
+	g := &gitlabListor{
+		gitlabContext: gitlabContext{
+			apiClient: c,
+		},
+		projects:       make(map[string][]*gitup.Repo),
+		filterArchived: config.FilterArchived,
+	}
+	return g, nil
 }
 
-func (g *gitlab) Projects() []*gitup.Repo {
+func (g *gitlabListor) Projects() []*gitup.Repo {
 	if len(g.projects) == 0 {
 		g.fetchProjects()
 	}
@@ -42,7 +54,7 @@ func (g *gitlab) Projects() []*gitup.Repo {
 	return result
 }
 
-func (g *gitlab) ProjectsByGroup(group *string) ([]*gitup.Repo, error) {
+func (g *gitlabListor) ProjectsByGroup(group *string) ([]*gitup.Repo, error) {
 	if len(g.projects) == 0 {
 		g.fetchProjects()
 	}
@@ -56,7 +68,7 @@ func (g *gitlab) ProjectsByGroup(group *string) ([]*gitup.Repo, error) {
 	// ). find repos about target root group
 	result, ok := g.projects[prefix]
 	if !ok {
-		return nil, fmt.Errorf("[GitLab]Not find projects in %s", *group)
+		return nil, fmt.Errorf("[GitLab]Not find projects in %s", dd.Val(group))
 	}
 	if subSearch {
 		// ). filter subgroup
@@ -67,28 +79,30 @@ func (g *gitlab) ProjectsByGroup(group *string) ([]*gitup.Repo, error) {
 			}
 		}
 		if len(subResult) == 0 {
-			return nil, fmt.Errorf("[GitLab]Not find projects in %s", *group)
+			return nil, fmt.Errorf("[GitLab]Not find projects in %s", dd.Val(group))
 		}
 		result = subResult
 	}
 	return result, nil
 }
 
-const (
-	perPage = 100
-	baseURL = "https://%s/api/v4"
-)
-
-func (g *gitlab) fetchProjects() error {
-	// ). init client
-	gl, err := gitlabapi.NewClient(
-		dd.Val(g.token),
-		gitlabapi.WithBaseURL(fmt.Sprintf(baseURL, dd.Val(g.host))),
-	)
+func (g *gitlabListor) Project(group, name *string) (*gitup.Repo, error) {
+	// ). list projects with group
+	repos, err := g.ProjectsByGroup(group)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	for _, r := range repos {
+		if strings.Compare(dd.Val(name), r.Name) == 0 {
+			return r, nil
+		}
+	}
+
+	return nil, fmt.Errorf("[Gitlab]Not find project[%s][%s]", dd.Val(group), dd.Val(name))
+}
+
+func (g *gitlabListor) fetchProjects() error {
 	// ). init context & channel
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	dst := make(chan []*gitlabapi.Project, 1)
@@ -111,7 +125,7 @@ func (g *gitlab) fetchProjects() error {
 
 		for {
 			// Get the first page with projects.
-			ps, resp, err := gl.Projects.ListProjects(opt)
+			ps, resp, err := g.apiClient.Projects.ListProjects(opt)
 			if err != nil {
 				infra.GetLogger().Log("[Gitlab]", "List projects error", err)
 				return
@@ -149,6 +163,7 @@ func convertToRepo(base *map[string][]*gitup.Repo, projects []*gitlabapi.Project
 	for _, p := range projects {
 		g := p.PathWithNamespace[:strings.IndexByte(p.PathWithNamespace, '/')]
 		r := &gitup.Repo{
+			ID:       p.ID,
 			URL:      p.HTTPURLToRepo,
 			Name:     p.Name,
 			Group:    g,
@@ -163,4 +178,51 @@ func convertToRepo(base *map[string][]*gitup.Repo, projects []*gitlabapi.Project
 			(*base)[r.Group] = append(ps, r)
 		}
 	}
+}
+
+type gitlabForker struct {
+	gitlabListor
+}
+
+func NewForker(config *infra.RepoConfig) (gitup.RepoForker, error) {
+	// ). construct gitlab client
+	c, err := newGitlabClient(config.Token, config.Host)
+	if err != nil {
+		return nil, err
+	}
+
+	// ). construct
+	g := &gitlabForker{
+		gitlabListor: gitlabListor{
+			gitlabContext: gitlabContext{
+				apiClient: c,
+			},
+			projects:       make(map[string][]*gitup.Repo),
+			filterArchived: config.FilterArchived,
+		},
+	}
+
+	return g, nil
+}
+
+func (g *gitlabForker) Fork(r *gitup.Repo, group, name *string) error {
+	// ). prepare fork options
+	opt := &gitlabapi.ForkProjectOptions{
+		NamespacePath: group,
+	}
+	if name != nil {
+		opt.Name = name
+	}
+
+	// ). do fork
+	p, resp, err := g.apiClient.Projects.ForkProject(r.ID, opt)
+	if err != nil {
+		return err
+	}
+	infra.GetLogger().Log("[Gitlab]", "Fork finish",
+		"http ->", resp.StatusCode,
+		"new project ->", p.ID,
+	)
+
+	return nil
 }

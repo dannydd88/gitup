@@ -12,31 +12,21 @@ func NewSyncCommand() *cli.Command {
 	return &cli.Command{
 		Name:  "sync",
 		Usage: "Sync repo via config",
-		Flags: []cli.Flag{
-			&cli.IntFlag{
-				Name:    "concurrency",
-				Aliases: []string{"c"},
-				Usage:   "Git operation concurrency",
-				Value:   10,
-			},
-		},
-		Before: infra.Init,
 		Action: func(c *cli.Context) error {
 			config := infra.GetConfig()
 
-			// ). Decide repository
-			r, err := buildRepoHub(config.RepoConfig)
+			// ). decide repository type
+			listor, err := buildRepoListor(config.RepoConfig)
 			if err != nil {
 				return err
 			}
 
-			// ). construct syncer
+			// ). construct syncer and run
 			(&gitup.Syncer{
-				Hub:         r,
-				SyncConfig:  config.SyncConfig,
-				Cwd:         config.Cwd,
-				Concurrency: c.Int("concurrency"),
-				Logger:      dd.NewDefaultLogger(),
+				Api:        listor,
+				SyncConfig: config.SyncConfig,
+				Cwd:        config.Cwd,
+				Logger:     dd.NewDefaultLogger(),
 			}).Go()
 
 			return nil

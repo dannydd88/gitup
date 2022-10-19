@@ -12,28 +12,29 @@ import (
 	"github.com/dannydd88/dd-go"
 )
 
-// Syncer -
+// Syncer
 type Syncer struct {
-	Hub         RepoHub
-	SyncConfig  *infra.SyncConfig
-	Cwd         *string
-	Concurrency int
-	Logger      dd.Logger
+	Api        RepoListor
+	SyncConfig *infra.SyncConfig
+	Cwd        *string
+	Logger     dd.Logger
 }
 
-// Go -
-func (r *Syncer) Go() {
-	r.Logger.Log("[Syncer]", "Started...")
-	// ). Prepare repos
+// Go
+// Entrance of |Syncer|
+func (s *Syncer) Go() {
+	s.Logger.Log("[Syncer]", "Started...")
+
+	// ). prepare repos
 	var repos []*Repo
-	if len(r.SyncConfig.Groups) == 0 {
-		repos = r.Hub.Projects()
+	if len(s.SyncConfig.Groups) == 0 {
+		repos = s.Api.Projects()
 	} else {
 		repos = []*Repo{}
-		for _, g := range r.SyncConfig.Groups {
-			result, err := r.Hub.ProjectsByGroup(g)
+		for _, g := range s.SyncConfig.Groups {
+			result, err := s.Api.ProjectsByGroup(g)
 			if err != nil {
-				r.Logger.Log("[Syncer]", "Meet error ->", err)
+				s.Logger.Log("[Syncer]", "Meet error ->", err)
 				continue
 			} else {
 				repos = append(repos, result...)
@@ -41,40 +42,38 @@ func (r *Syncer) Go() {
 		}
 	}
 
-	// ). Prepare context
+	// ). prepare context
 	ctx, cancel := context.WithCancel(context.Background())
 	output := make(chan string)
 	defer close(output)
-
-	// ). Prepare git repo
 	var wg sync.WaitGroup
 
-	r.Logger.Log("[Syncer]", "Start sync repos ->", len(repos))
+	s.Logger.Log("[Syncer]", "Start sync repos ->", len(repos))
 
-	// ). Post git task to runner
+	// ). post git task to runner
 	for _, repo := range repos {
 		wg.Add(1)
 		url := dd.String(repo.URL)
-		path := dd.String(filepath.Join(dd.Val(r.Cwd), repo.FullPath))
-		git := git.NewGit(r.Logger, url, path, r.SyncConfig.Bare)
-		f := dd.Bind3(doSyncGitRepo, git, output, &wg)
-		infra.GetWorkerPoolRunner().Post(f)
+		path := dd.String(filepath.Join(dd.Val(s.Cwd), repo.FullPath))
+		git := git.NewGit(s.Logger, url, path, s.SyncConfig.Bare)
+		c := dd.Bind3(doSyncGitRepo, git, output, &wg)
+		infra.GetWorkerPoolRunner().Post(c)
 	}
 
-	// ). Async wait task done
+	// ). async wait task done
 	go func() {
 		defer cancel()
-		r.Logger.Log("[Syncer]", "Waiting syncing repo...")
+		s.Logger.Log("[Syncer]", "Waiting syncing repo...")
 		wg.Wait()
 	}()
 
-	// ). Logging & wait all job done
+	// ). logging & wait all task done
 	for alive := true; alive; {
 		select {
 		case m := <-output:
-			r.Logger.Log(m)
+			s.Logger.Log(m)
 		case <-ctx.Done():
-			r.Logger.Log("[Syncer]", "Done...")
+			s.Logger.Log("[Syncer]", "Done...")
 			alive = false
 		}
 	}
@@ -93,5 +92,5 @@ func doSyncGitRepo(g *git.Git, output chan string, wg *sync.WaitGroup) error {
 	output <- msg
 	wg.Done()
 
-	return nil
+	return err
 }

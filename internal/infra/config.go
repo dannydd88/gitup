@@ -14,7 +14,7 @@ type RepoConfig struct {
 	Type           *string `yaml:"type"`
 	Host           *string `yaml:"host"`
 	Token          *string `yaml:"token"`
-	FilterArchived *bool   `yaml:"filter_archived,omitempty"`
+	FilterArchived bool    `yaml:"filter_archived,omitempty"`
 }
 
 // SyncConfig - sync setion of config.yaml
