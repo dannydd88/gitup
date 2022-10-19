@@ -44,6 +44,11 @@ func NewForkCommand() *cli.Command {
 		Action: func(ctx *cli.Context) error {
 			config := infra.GetConfig()
 
+			// ). check config
+			if config == nil || config.RepoConfig == nil {
+				return fmt.Errorf("[Main] gitup config error")
+			}
+
 			// ). decide repository type
 			forker, err := buildRepoForker(config.RepoConfig)
 			if err != nil {
@@ -56,7 +61,7 @@ func NewForkCommand() *cli.Command {
 				// higher priority to use fork config file
 				path := ctx.String("forks")
 				if !dd.FileExists(dd.Ptr(path)) {
-					return fmt.Errorf("[Main] Cannot find config -> %s", path)
+					return fmt.Errorf("[Main] cannot find config -> %s", path)
 				}
 				data, err := os.ReadFile(path)
 				if err != nil {
@@ -69,7 +74,7 @@ func NewForkCommand() *cli.Command {
 			} else {
 				// individual repo fork, check flags
 				if !ctx.IsSet("from-group") || !ctx.IsSet("from-repo") || !ctx.IsSet("to-group") {
-					return fmt.Errorf("[Main] Missing one of flag(from-group/from-repo/to-group)")
+					return fmt.Errorf("[Main] missing one of flag(from-group/from-repo/to-group)")
 				}
 				config := &gitup.ForkConfig{
 					FromGroup: dd.Ptr(ctx.String("from-group")),

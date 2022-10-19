@@ -1,6 +1,7 @@
 package command
 
 import (
+	"fmt"
 	"gitup/internal/infra"
 	"gitup/pkg/gitup"
 
@@ -14,6 +15,11 @@ func NewSyncCommand() *cli.Command {
 		Usage: "Sync repo via config",
 		Action: func(c *cli.Context) error {
 			config := infra.GetConfig()
+
+			// ). check config
+			if config == nil || config.RepoConfig == nil || config.SyncConfig == nil {
+				return fmt.Errorf("[Main] gitup config error")
+			}
 
 			// ). decide repository type
 			listor, err := buildRepoListor(config.RepoConfig)
