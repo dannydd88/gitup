@@ -184,6 +184,8 @@ type gitlabForker struct {
 	gitlabListor
 }
 
+// NewForker
+// Helper function to create |RepoForker|'s gitlab implement
 func NewForker(config *infra.RepoConfig) (gitup.RepoForker, error) {
 	// ). construct gitlab client
 	c, err := newGitlabClient(config.Token, config.Host)
