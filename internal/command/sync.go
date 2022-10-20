@@ -18,7 +18,7 @@ func NewSyncCommand() *cli.Command {
 
 			// ). check config
 			if config == nil || config.RepoConfig == nil || config.SyncConfig == nil {
-				return fmt.Errorf("[Main] gitup config error")
+				return fmt.Errorf("[Sync] gitup config error")
 			}
 
 			// ). decide repository type
