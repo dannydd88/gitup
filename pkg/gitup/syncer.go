@@ -22,7 +22,7 @@ type Syncer struct {
 	SyncConfig *SyncConfig
 	Cwd        *string
 	TaskRunner dd.TaskRunner
-	Logger     dd.Logger
+	Logger     dd.LevelLogger
 }
 
 // Go
@@ -39,7 +39,7 @@ func (s *Syncer) Go() {
 		for _, g := range s.SyncConfig.Groups {
 			result, err := s.Api.ProjectsByGroup(g)
 			if err != nil {
-				s.Logger.Log("[Syncer]", "Meet error ->", err)
+				s.Logger.Warn("[Syncer]", "Meet error ->", err)
 				continue
 			} else {
 				repos = append(repos, result...)
@@ -58,8 +58,8 @@ func (s *Syncer) Go() {
 	// ). post git task to runner
 	for _, repo := range repos {
 		wg.Add(1)
-		url := dd.String(repo.URL)
-		path := dd.String(filepath.Join(dd.Val(s.Cwd), repo.FullPath))
+		url := dd.Ptr(repo.URL)
+		path := dd.Ptr(filepath.Join(dd.Val(s.Cwd), repo.FullPath))
 		git := git.NewGit(s.Logger, url, path, s.SyncConfig.Bare)
 		c := dd.Bind3(doSyncGitRepo, git, output, &wg)
 		s.TaskRunner.Post(c)

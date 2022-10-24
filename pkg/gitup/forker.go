@@ -20,7 +20,7 @@ type Forker struct {
 	Api         RepoForker
 	ForkConfigs []*ForkConfig
 	TaskRunner  dd.TaskRunner
-	Logger      dd.Logger
+	Logger      dd.LevelLogger
 }
 
 type forkDetail struct {
@@ -44,7 +44,7 @@ func (f *Forker) Go() {
 	for _, fc := range f.ForkConfigs {
 		// ). check config
 		if len(fc.ToRepos) != 0 && len(fc.FromRepos) != len(fc.ToRepos) {
-			f.Logger.Log("[Forker]", "find to-repos != from-repos error in from-group ->", fc.FromGroup, ", skip this!")
+			f.Logger.Warn("[Forker]", "find to-repos != from-repos error in from-group ->", fc.FromGroup, ", skip this!")
 			continue
 		}
 
@@ -53,7 +53,7 @@ func (f *Forker) Go() {
 			// ). find target repo
 			repo, err := f.Api.Project(fc.FromGroup, r)
 			if err != nil {
-				f.Logger.Log("[Forker]", "finding source repo meet error ->", err)
+				f.Logger.Warn("[Forker]", "finding source repo meet error ->", err)
 				continue
 			}
 

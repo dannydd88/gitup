@@ -6,7 +6,7 @@ import (
 )
 
 type GitUpContext struct {
-	logger           dd.Logger
+	logger           dd.LevelLogger
 	config           *Config
 	workerPoolRunner *dd.WorkerPoolRunner
 }
@@ -18,15 +18,15 @@ func Init(ctx *cli.Context) error {
 	globalContext = GitUpContext{}
 
 	// ). init logger
-	globalContext.logger = dd.NewDefaultLogger()
+	globalContext.logger = dd.NewLevelLogger(dd.INFO)
 
 	// ). init config
 	{
-		c, err := loadConfig(dd.Ptr(ctx.String("config")))
+		globalContext.config = &Config{}
+		err := dd.NewYAMLLoader[Config](dd.Ptr(ctx.String("config"))).Load(globalContext.config)
 		if err != nil {
 			return err
 		}
-		globalContext.config = c
 	}
 
 	// ). init pool runner
@@ -38,7 +38,7 @@ func Init(ctx *cli.Context) error {
 	return nil
 }
 
-func GetLogger() dd.Logger {
+func GetLogger() dd.LevelLogger {
 	return globalContext.logger
 }
 
