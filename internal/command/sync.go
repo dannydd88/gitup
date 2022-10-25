@@ -11,8 +11,9 @@ import (
 
 func NewSyncCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "sync",
-		Usage: "Sync repo via config",
+		Name:   "sync",
+		Usage:  "Sync repo via config",
+		Before: infra.CommandInit,
 		Action: func(c *cli.Context) error {
 			config := infra.GetConfig()
 

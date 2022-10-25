@@ -14,8 +14,9 @@ import (
 
 func NewForkCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "fork",
-		Usage: "Fork repo via config or flags",
+		Name:   "fork",
+		Usage:  "Fork repo via config or flags",
+		Before: infra.CommandInit,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "from-group",

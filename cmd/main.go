@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -10,10 +11,17 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var (
+	version string = "dev"
+	build   string = "dev"
+	sha     string = "dev"
+)
+
 func main() {
 	app := &cli.App{
-		Name:  "gitup",
-		Usage: "Tools for git repos management",
+		Name:    "gitup",
+		Version: fmt.Sprintf("%s-%s-%s", version, build, sha),
+		Usage:   "Tools for git repos management",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "config",
@@ -22,7 +30,7 @@ func main() {
 				Usage:   "Load config from yaml file",
 			},
 		},
-		Before: infra.Init,
+		Before: infra.AppInit,
 		Commands: []*cli.Command{
 			command.NewSyncCommand(),
 			command.NewForkCommand(),

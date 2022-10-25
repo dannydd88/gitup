@@ -13,13 +13,17 @@ type GitUpContext struct {
 
 var globalContext GitUpContext
 
-func Init(ctx *cli.Context) error {
+func AppInit(ctx *cli.Context) error {
 	// ). init context
 	globalContext = GitUpContext{}
 
 	// ). init logger
 	globalContext.logger = dd.NewLevelLogger(dd.INFO)
 
+	return nil
+}
+
+func CommandInit(ctx *cli.Context) error {
 	// ). init config
 	{
 		globalContext.config = &Config{}
