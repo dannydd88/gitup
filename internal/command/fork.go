@@ -46,9 +46,9 @@ func NewForkCommand() *cli.Command {
 		Action: func(ctx *cli.Context) error {
 			config := infra.GetConfig()
 
-			// ). check config
+			// ). check repo config
 			if config == nil || config.RepoConfig == nil {
-				return fmt.Errorf("[Fork] missing config")
+				return fmt.Errorf("[Fork] missing repo config")
 			}
 
 			// ). decide repository type
@@ -59,7 +59,7 @@ func NewForkCommand() *cli.Command {
 
 			// ). prepare |ForkConfig| array
 			var forkConfigs []*gitup.ForkConfig
-			if ctx.IsSet("forks") {
+			if existFlags(ctx, "forks") {
 				// higher priority to use fork config file
 				path := ctx.String("forks")
 				if !dd.FileExists(dd.Ptr(path)) {
@@ -73,7 +73,7 @@ func NewForkCommand() *cli.Command {
 				if err != nil {
 					return err
 				}
-			} else {
+			} else if existFlags(ctx, "from-group", "from-repo", "to-group") {
 				// individual repo fork, check flags
 				if !ctx.IsSet("from-group") || !ctx.IsSet("from-repo") || !ctx.IsSet("to-group") {
 					return fmt.Errorf("[Fork] missing one of flag(from-group/from-repo/to-group)")
@@ -89,6 +89,12 @@ func NewForkCommand() *cli.Command {
 					config.ToRepos = []*string{dd.Ptr(ctx.String("to-repo"))}
 				}
 				forkConfigs = append(forkConfigs, config)
+			} else {
+				return fmt.Errorf(
+					"[Fork] ERROR: should provide fork info using file flag[%s] or cli flag[%s]",
+					"--forks",
+					"--from-group & --from-repo & --to-group",
+				)
 			}
 
 			// ). construct forker and run

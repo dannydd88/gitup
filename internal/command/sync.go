@@ -3,6 +3,7 @@ package command
 import (
 	"fmt"
 
+	"github.com/dannydd88/dd-go"
 	"github.com/dannydd88/gitup/internal/infra"
 	"github.com/dannydd88/gitup/pkg/gitup"
 
@@ -14,12 +15,24 @@ func NewSyncCommand() *cli.Command {
 		Name:   "sync",
 		Usage:  "Sync repo via config",
 		Before: infra.CommandInit,
+		Flags: []cli.Flag{
+			&cli.StringSliceFlag{
+				Name:    "group",
+				Aliases: []string{"g"},
+				Usage:   "Groups that need to sync [higher priority than sync settings in yaml file]",
+			},
+			&cli.BoolFlag{
+				Name:  "bare",
+				Usage: "Should sync repo in bare way",
+				Value: false,
+			},
+		},
 		Action: func(c *cli.Context) error {
 			config := infra.GetConfig()
 
-			// ). check config
+			// ). check repo config
 			if config == nil || config.RepoConfig == nil || config.SyncConfig == nil {
-				return fmt.Errorf("[Sync] gitup config error")
+				return fmt.Errorf("[Sync] missing repo config")
 			}
 
 			// ). decide repository type
@@ -28,11 +41,28 @@ func NewSyncCommand() *cli.Command {
 				return err
 			}
 
-			// ). construct syncer and run
-			syncConfig := &gitup.SyncConfig{
-				Bare:   config.SyncConfig.Bare,
-				Groups: config.SyncConfig.Groups,
+			// ). check and build sync config
+			var syncConfig *gitup.SyncConfig
+			if existFlags(c, "group") {
+				// higher priority to use cli flag
+				syncConfig = &gitup.SyncConfig{
+					Bare:   c.Bool("bare"),
+					Groups: dd.PtrSlice(c.StringSlice("group")),
+				}
+			} else if config.SyncConfig != nil {
+				syncConfig = &gitup.SyncConfig{
+					Bare:   config.SyncConfig.Bare,
+					Groups: config.SyncConfig.Groups,
+				}
+			} else {
+				return fmt.Errorf(
+					"[Sync] ERROR: should provide sync info using cli flag[%s] or in config file section[%s]",
+					"--group",
+					"sync",
+				)
 			}
+
+			// ). construct syncer and run
 			(&gitup.Syncer{
 				Api:        listor,
 				SyncConfig: syncConfig,
