@@ -21,5 +21,10 @@ type RepoListor interface {
 // RepoForker represent a forker to fork any repositories
 type RepoForker interface {
 	RepoListor
-	Fork(r *Repo, group, name *string) error
+
+	Fork(r *Repo, group *string) (*Repo, error)
+
+	Rename(r *Repo, name *string) (*Repo, error)
+
+	Transfer(r *Repo, group *string) (*Repo, error)
 }

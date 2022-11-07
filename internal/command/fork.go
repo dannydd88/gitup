@@ -31,12 +31,12 @@ func NewForkCommand() *cli.Command {
 			&cli.StringFlag{
 				Name:    "to-group",
 				Aliases: []string{"tg"},
-				Usage:   "Target repo's group",
+				Usage:   "Target repo's group, can be null which means same group fork, should provide new repo name",
 			},
 			&cli.StringFlag{
 				Name:    "to-repo",
 				Aliases: []string{"tr"},
-				Usage:   "Target repo's name",
+				Usage:   "Target repo's name, can be null which means using the same name as from-repo, but should not be same group fork",
 			},
 			&cli.StringFlag{
 				Name:  "forks",
@@ -73,27 +73,45 @@ func NewForkCommand() *cli.Command {
 				if err != nil {
 					return err
 				}
-			} else if existFlags(ctx, "from-group", "from-repo", "to-group") {
-				// individual repo fork, check flags
-				if !ctx.IsSet("from-group") || !ctx.IsSet("from-repo") || !ctx.IsSet("to-group") {
-					return fmt.Errorf("[Fork] missing one of flag(from-group/from-repo/to-group)")
-				}
+			} else if existFlags(ctx, "from-group", "from-repo") {
+				// ). prepare fromGroup and fromRepo
+				fromGroup := ctx.String("from-group")
+				fromRepo := ctx.String("from-repo")
+
+				// ). build |ForkConfig|
 				config := &gitup.ForkConfig{
-					FromGroup: dd.Ptr(ctx.String("from-group")),
+					FromGroup: dd.Ptr(fromGroup),
 					FromRepos: []*string{
-						dd.Ptr(ctx.String("from-repo")),
+						dd.Ptr(fromRepo),
 					},
-					ToGroup: dd.Ptr(ctx.String("to-group")),
+				}
+
+				// ). modify |ForkConfig| according flags
+				if ctx.IsSet("to-group") {
+					toGroup := ctx.String("to-group")
+					config.ToGroup = dd.Ptr(toGroup)
 				}
 				if ctx.IsSet("to-repo") {
-					config.ToRepos = []*string{dd.Ptr(ctx.String("to-repo"))}
+					toRepo := ctx.String("to-repo")
+					config.ToRepos = []*string{dd.Ptr(toRepo)}
 				}
+
+				// ). check |ForkConfig|
+				if config.ToGroup == nil && len(config.ToRepos) == 0 {
+					return fmt.Errorf(
+						"[Fork] ERROR: shoud provide one of flag %s | %s",
+						"--to-group",
+						"--to-repo",
+					)
+				}
+
+				// ). append config
 				forkConfigs = append(forkConfigs, config)
 			} else {
 				return fmt.Errorf(
 					"[Fork] ERROR: should provide fork info using file flag[%s] or cli flag[%s]",
 					"--forks",
-					"--from-group & --from-repo & --to-group",
+					"--from-group & --from-repo & (one of --to-group|--to-repo)",
 				)
 			}
 

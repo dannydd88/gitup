@@ -24,9 +24,11 @@ type Forker struct {
 }
 
 type forkDetail struct {
-	source      *Repo
-	targetGroup *string
-	targetName  *string
+	source         *Repo
+	targetGroup    *string
+	targetName     *string
+	sameGroupFork  bool
+	changeNameFork bool
 }
 
 // Go
@@ -44,7 +46,12 @@ func (f *Forker) Go() {
 	for _, fc := range f.ForkConfigs {
 		// ). check config
 		if len(fc.ToRepos) != 0 && len(fc.FromRepos) != len(fc.ToRepos) {
-			f.Logger.Warn("[Forker]", "find to-repos != from-repos error in from-group ->", fc.FromGroup, ", skip this!")
+			f.Logger.Warn(
+				"[Forker]",
+				"find len(to-repos) != len(from-repos) error in from-group ->",
+				fc.FromGroup,
+				", skip this!",
+			)
 			continue
 		}
 
@@ -59,11 +66,30 @@ func (f *Forker) Go() {
 
 			// ). prepare fork detail
 			detail := &forkDetail{
-				source:      repo,
-				targetGroup: fc.ToGroup,
+				source: repo,
+			}
+			if fc.ToGroup == nil {
+				detail.targetGroup = fc.FromGroup
+			} else {
+				detail.targetGroup = fc.ToGroup
 			}
 			if len(fc.ToRepos) != 0 {
 				detail.targetName = fc.ToRepos[i]
+			}
+			if dd.Val(fc.FromGroup) == dd.Val(detail.targetGroup) {
+				detail.sameGroupFork = true
+				if detail.targetName == nil {
+					f.Logger.Warn(
+						"[Forker]",
+						"same group fork [",
+						detail.source.Name,
+						"] without new repo name, skip this",
+					)
+					continue
+				}
+			}
+			if detail.targetName != nil && dd.Val(detail.targetName) != dd.Val(r) {
+				detail.changeNameFork = true
 			}
 			wg.Add(1)
 
@@ -93,7 +119,22 @@ func (f *Forker) Go() {
 }
 
 func doFork(api RepoForker, detail *forkDetail, output chan string, wg *sync.WaitGroup) error {
-	err := api.Fork(detail.source, detail.targetGroup, detail.targetName)
+	// ). do fork
+	targetGroup := detail.targetGroup
+	if detail.sameGroupFork {
+		targetGroup = nil
+	}
+	forkedRepo, err := api.Fork(detail.source, targetGroup)
+
+	// ). do rename if necessary
+	if err == nil && detail.changeNameFork {
+		_, err = api.Rename(forkedRepo, detail.targetName)
+	}
+
+	// ). do transfer if necessary
+	if err == nil && detail.sameGroupFork {
+		_, err = api.Transfer(forkedRepo, detail.targetGroup)
+	}
 
 	var msg string
 	if err == nil {

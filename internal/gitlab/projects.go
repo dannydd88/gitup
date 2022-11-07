@@ -207,24 +207,80 @@ func NewForker(config *infra.RepoConfig) (gitup.RepoForker, error) {
 	return g, nil
 }
 
-func (g *gitlabForker) Fork(r *gitup.Repo, group, name *string) error {
+func (g *gitlabForker) Fork(r *gitup.Repo, group *string) (*gitup.Repo, error) {
 	// ). prepare fork options
 	opt := &gitlabapi.ForkProjectOptions{
 		NamespacePath: group,
-	}
-	if name != nil {
-		opt.Name = name
 	}
 
 	// ). do fork
 	p, resp, err := g.apiClient.Projects.ForkProject(r.ID, opt)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	infra.GetLogger().Log("[Gitlab]", "Fork finish",
 		"http ->", resp.StatusCode,
 		"new project ->", p.ID,
 	)
 
-	return nil
+	return &gitup.Repo{
+		ID:       p.ID,
+		Name:     p.Name,
+		Group:    p.Namespace.FullPath,
+		URL:      p.HTTPURLToRepo,
+		FullPath: p.PathWithNamespace,
+	}, nil
+}
+
+func (g *gitlabForker) Rename(r *gitup.Repo, name *string) (*gitup.Repo, error) {
+	// ). prepare edit project options
+	opt := &gitlabapi.EditProjectOptions{
+		Name: name,
+		Path: name,
+	}
+
+	// ). do rename
+	p, resp, err := g.apiClient.Projects.EditProject(r.ID, opt)
+	if err != nil {
+		return nil, err
+	}
+	infra.GetLogger().Log("[Gitlab]", "Rename finish",
+		"http ->", resp.StatusCode,
+		"project ->", r.ID,
+		"after ->", p.ID,
+	)
+
+	return &gitup.Repo{
+		ID:       p.ID,
+		Name:     p.Name,
+		Group:    p.Namespace.FullPath,
+		URL:      p.HTTPURLToRepo,
+		FullPath: p.PathWithNamespace,
+	}, nil
+}
+
+func (g *gitlabForker) Transfer(r *gitup.Repo, group *string) (*gitup.Repo, error) {
+	// ). prepare transfer options
+	opt := &gitlabapi.TransferProjectOptions{
+		Namespace: group,
+	}
+
+	// ). do transfer
+	p, resp, err := g.apiClient.Projects.TransferProject(r.ID, opt)
+	if err != nil {
+		return nil, err
+	}
+	infra.GetLogger().Log("[Gitlab]", "Transfer finish",
+		"http ->", resp.StatusCode,
+		"project ->", r.ID,
+		"after ->", p.ID,
+	)
+
+	return &gitup.Repo{
+		ID:       p.ID,
+		Name:     p.Name,
+		Group:    p.Namespace.FullPath,
+		URL:      p.HTTPURLToRepo,
+		FullPath: p.PathWithNamespace,
+	}, nil
 }
