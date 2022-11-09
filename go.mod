@@ -5,8 +5,8 @@ go 1.19
 require (
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/dannydd88/dd-go v0.2.4
-	github.com/urfave/cli/v2 v2.20.3
-	github.com/xanzy/go-gitlab v0.73.1
+	github.com/urfave/cli/v2 v2.23.5
+	github.com/xanzy/go-gitlab v0.74.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
