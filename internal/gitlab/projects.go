@@ -165,7 +165,7 @@ func convertToRepo(base *map[string][]*gitup.Repo, projects []*gitlabapi.Project
 		r := &gitup.Repo{
 			ID:       p.ID,
 			URL:      p.HTTPURLToRepo,
-			Name:     p.Name,
+			Name:     strings.TrimSpace(p.Name),
 			Group:    g,
 			FullPath: p.PathWithNamespace,
 		}
