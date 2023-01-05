@@ -94,7 +94,8 @@ func (g *gitlabListor) Project(group, name *string) (*gitup.Repo, error) {
 	}
 
 	for _, r := range repos {
-		if strings.Compare(dd.Val(name), r.Name) == 0 {
+		realGroup := r.FullPath[:strings.LastIndexByte(r.FullPath, '/')]
+		if strings.Compare(dd.Val(group), realGroup) == 0 && strings.Compare(dd.Val(name), r.Name) == 0 {
 			return r, nil
 		}
 	}

@@ -13,8 +13,10 @@ type Repo struct {
 type RepoListor interface {
 	Projects() []*Repo
 
+	// ProjectsByGroup: List project by group name prefix match
 	ProjectsByGroup(group *string) ([]*Repo, error)
 
+	// Project: Filter target project by specific group and name
 	Project(group, name *string) (*Repo, error)
 }
 
