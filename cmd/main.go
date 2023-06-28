@@ -13,14 +13,14 @@ import (
 
 var (
 	version string = "dev"
-	build   string = "dev"
-	sha     string = "dev"
+	date    string = "dev"
+	commit  string = "dev"
 )
 
 func main() {
 	app := &cli.App{
 		Name:    "gitup",
-		Version: fmt.Sprintf("%s-%s-%s", version, build, sha),
+		Version: fmt.Sprintf("%s-%s-%s", version, date, commit),
 		Usage:   "Tools for git repos management",
 		Flags: []cli.Flag{
 			&cli.StringFlag{

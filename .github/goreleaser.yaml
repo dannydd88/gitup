@@ -2,3 +2,5 @@
 
 builds:
   - main: ./cmd/
+universal_binaries:
+  - replace: true

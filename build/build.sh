@@ -13,10 +13,10 @@ cd "$ROOT_DIR/cmd"
 
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
   -x -o "$ROOT_DIR/out/linux-amd64/gitup" \
-  -ldflags "-s -w -X main.version=$VERSION -X main.build=$BUILD -X main.sha=$SHA"
+  -ldflags "-s -w -X main.version=$VERSION -X main.date=$BUILD -X main.commit=$SHA"
 CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build \
   -x -o "$ROOT_DIR/out/darwin-amd64/gitup" \
-  -ldflags "-s -w -X main.version=$VERSION -X main.build=$BUILD -X main.sha=$SHA"
+  -ldflags "-s -w -X main.version=$VERSION -X main.date=$BUILD -X main.commit=$SHA"
 
 cd "$ROOT_DIR/out/linux-amd64"
 tar zcf gitup-linux-amd64.tar.gz gitup
