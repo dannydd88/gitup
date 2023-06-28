@@ -4,7 +4,7 @@ repo:
   token: "123"
   filter_archived: false
 cwd: ""
-git:
+sync:
   bare: false
   groups:
     - "123"
