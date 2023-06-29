@@ -20,7 +20,7 @@ var (
 func main() {
 	app := &cli.App{
 		Name:    "gitup",
-		Version: fmt.Sprintf("%s-%s-%s", version, date, commit),
+		Version: fmt.Sprintf("%s-%s (Build at %s)", version, commit, date),
 		Usage:   "Tools for git repos management",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
