@@ -1,8 +1,12 @@
 package gitlab
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"strings"
 	"time"
 
@@ -183,6 +187,8 @@ func convertToRepo(base *map[string][]*gitup.Repo, projects []*gitlabapi.Project
 
 type gitlabForker struct {
 	gitlabListor
+	token string
+	host  string
 }
 
 // NewForker
@@ -203,6 +209,8 @@ func NewForker(config *infra.RepoConfig) (gitup.RepoForker, error) {
 			projects:       make(map[string][]*gitup.Repo),
 			filterArchived: config.FilterArchived,
 		},
+		token: dd.Val(config.Token),
+		host:  dd.Val(config.Host),
 	}
 
 	return g, nil
@@ -223,6 +231,36 @@ func (g *gitlabForker) Fork(r *gitup.Repo, group *string) (*gitup.Repo, error) {
 		"http ->", resp.StatusCode,
 		"new project ->", p.ID,
 	)
+
+	// temporary solution
+	// disable CI_JOB_TOKEN scope by default
+	// see https://docs.gitlab.com/ee/api/project_job_token_scopes.html
+	{
+		// 1) prepare payload and request
+		payload, _ := json.Marshal(map[string]any{
+			"enabled": false,
+		})
+		url := fmt.Sprintf("https://%s/api/v4/projects/%d/job_token_scope", g.host, p.ID)
+		request, _ := http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(payload))
+		request.Header.Set("Content-Type", "application/json")
+		request.Header.Set("PRIVATE-TOKEN", g.token)
+
+		// 2) prepare http client
+		httpClient := &http.Client{}
+
+		// 3) do http process
+		response, err := httpClient.Do(request)
+		if err == nil {
+			defer response.Body.Close()
+
+			body, _ := io.ReadAll(response.Body)
+			infra.GetLogger().Log("[Gitlab]", "Patch CI_JOB_TOKEN scope",
+				"project -> ", p.ID,
+				"resp code -> ", response.StatusCode,
+				"resp body -> ", string(body),
+			)
+		}
+	}
 
 	return &gitup.Repo{
 		ID:       p.ID,
