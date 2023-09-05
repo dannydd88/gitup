@@ -40,7 +40,7 @@ func (f *Forker) Go() {
 	ctx, cancel := context.WithCancel(context.Background())
 	output := make(chan string)
 	defer close(output)
-	var wg sync.WaitGroup
+	wg := new(sync.WaitGroup)
 
 	// ). do fork in each |ForkConfig|
 	for _, fc := range f.ForkConfigs {
@@ -94,7 +94,7 @@ func (f *Forker) Go() {
 			wg.Add(1)
 
 			// ). async do fork
-			c := dd.Bind4(doFork, f.Api, detail, output, &wg)
+			c := dd.Bind4(doFork, f.Api, detail, output, wg)
 			f.TaskRunner.Post(c)
 		}
 	}

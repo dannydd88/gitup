@@ -51,7 +51,7 @@ func (s *Syncer) Go() {
 	ctx, cancel := context.WithCancel(context.Background())
 	output := make(chan string)
 	defer close(output)
-	var wg sync.WaitGroup
+	wg := new(sync.WaitGroup)
 
 	s.Logger.Log("[Syncer]", "Start sync repos ->", len(repos))
 
@@ -61,7 +61,7 @@ func (s *Syncer) Go() {
 		url := dd.Ptr(repo.URL)
 		path := dd.Ptr(filepath.Join(dd.Val(s.Cwd), repo.FullPath))
 		git := git.NewGit(s.Logger, url, path, s.SyncConfig.Bare)
-		c := dd.Bind3(doSyncGitRepo, git, output, &wg)
+		c := dd.Bind3(doSyncGitRepo, git, output, wg)
 		s.TaskRunner.Post(c)
 	}
 
