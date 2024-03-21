@@ -29,4 +29,6 @@ type RepoForker interface {
 	Rename(r *Repo, name *string) (*Repo, error)
 
 	Transfer(r *Repo, group *string) (*Repo, error)
+
+	DeleteForkRelationship(r *Repo) (bool, error)
 }

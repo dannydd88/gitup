@@ -9,10 +9,11 @@ import (
 )
 
 type ForkConfig struct {
-	FromGroup *string   `yaml:"from-group"`
-	FromRepos []*string `yaml:"from-repos"`
-	ToGroup   *string   `yaml:"to-group"`
-	ToRepos   []*string `yaml:"to-repos,omitempty"`
+	FromGroup      *string   `yaml:"from-group"`
+	FromRepos      []*string `yaml:"from-repos"`
+	ToGroup        *string   `yaml:"to-group"`
+	ToRepos        []*string `yaml:"to-repos,omitempty"`
+	RmForkRelation *bool     `yaml:"rm-fork-relation,omitempty"`
 }
 
 // Forker
@@ -29,6 +30,7 @@ type forkDetail struct {
 	targetName     *string
 	sameGroupFork  bool
 	changeNameFork bool
+	rmForkRelation bool
 }
 
 // Go
@@ -66,7 +68,8 @@ func (f *Forker) Go() {
 
 			// ). prepare fork detail
 			detail := &forkDetail{
-				source: repo,
+				source:         repo,
+				rmForkRelation: dd.Val(fc.RmForkRelation),
 			}
 			if fc.ToGroup == nil {
 				detail.targetGroup = fc.FromGroup
@@ -134,6 +137,11 @@ func doFork(api RepoForker, detail *forkDetail, output chan string, wg *sync.Wai
 	// ). do transfer if necessary
 	if err == nil && detail.sameGroupFork {
 		_, err = api.Transfer(forkedRepo, detail.targetGroup)
+	}
+
+	// ). do remove fork relationship if necessary
+	if err == nil && detail.rmForkRelation {
+		_, err = api.DeleteForkRelationship(forkedRepo)
 	}
 
 	var msg string

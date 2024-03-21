@@ -303,3 +303,17 @@ func (g *gitlabForker) Transfer(r *gitup.Repo, group *string) (*gitup.Repo, erro
 		FullPath: p.PathWithNamespace,
 	}, nil
 }
+
+func (g *gitlabForker) DeleteForkRelationship(r *gitup.Repo) (bool, error) {
+	// ). do delete fork relationship
+	resp, err := g.apiClient.Projects.DeleteProjectForkRelation(r.ID)
+	if err != nil {
+		return false, err
+	}
+	infra.GetLogger().Log("[Gitlab]", "Delete fork relationship finish",
+		"http -> ", resp.StatusCode,
+		"project -> ", r.ID,
+	)
+
+	return true, nil
+}

@@ -42,6 +42,11 @@ func NewForkCommand() *cli.Command {
 				Name:  "forks",
 				Usage: "Fork config yaml file",
 			},
+			&cli.BoolFlag{
+				Name:    "rm-fork-relation",
+				Aliases: []string{"rfr"},
+				Usage:   "Remove fork relationship",
+			},
 		},
 		Action: func(ctx *cli.Context) error {
 			config := infra.GetConfig()
@@ -84,6 +89,7 @@ func NewForkCommand() *cli.Command {
 					FromRepos: []*string{
 						dd.Ptr(fromRepo),
 					},
+					RmForkRelation: dd.Ptr(ctx.Bool("rm-fork-relation")),
 				}
 
 				// ). modify |ForkConfig| according flags
