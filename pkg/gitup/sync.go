@@ -91,11 +91,17 @@ func (s *Sync) Go() {
 }
 
 func doSyncGitRepo(g git.Git, output chan string, wg *sync.WaitGroup) error {
-	err := g.Sync()
+	updated, err := g.Sync()
 
 	var msg string
 	if err == nil {
-		msg = fmt.Sprintf("[sync] Finish sync[%s]", dd.Val(g.Path()))
+		var updateMsg string
+		if updated {
+			updateMsg = "sync-to-latest"
+		} else {
+			updateMsg = "already-up-to-date"
+		}
+		msg = fmt.Sprintf("[sync] Finish sync[%s] [%s]", dd.Val(g.Path()), updateMsg)
 	} else {
 		msg = fmt.Sprintf("[sync] Error sync[%s] err[%s]", dd.Val(g.Path()), err)
 	}

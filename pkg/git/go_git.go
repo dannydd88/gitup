@@ -35,7 +35,7 @@ func (g *GoGit) Path() *string {
 }
 
 // Sync - Sync a git repository, clone if is a new one, update otherwise
-func (g *GoGit) Sync() error {
+func (g *GoGit) Sync() (bool, error) {
 	var checkPath string
 	path := dd.Val(g.config.WorkDir)
 	if g.config.Bare {
@@ -56,7 +56,7 @@ func (g *GoGit) Sync() error {
 	return g.clone()
 }
 
-func (g *GoGit) clone() error {
+func (g *GoGit) clone() (bool, error) {
 	path := dd.Val(g.config.WorkDir)
 	g.logger.Log("[go-git]", "Clone repo ->", path)
 
@@ -69,46 +69,54 @@ func (g *GoGit) clone() error {
 		},
 	})
 
-	return err
+	return err == nil, err
 }
 
-func (g *GoGit) fetch() error {
+func (g *GoGit) fetch() (bool, error) {
 	path := dd.Val(g.config.WorkDir)
 	g.logger.Log("[go-git]", "fetch repo ->", path)
 
 	r, err := gg.PlainOpen(path)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return r.Fetch(&gg.FetchOptions{
+	err = r.Fetch(&gg.FetchOptions{
 		Progress: io.Discard,
 		Auth: &gghttp.BasicAuth{
 			Username: "dummy",
 			Password: dd.Val(g.config.Token),
 		},
 	})
+	return err == nil, err
 }
 
-func (g *GoGit) pull() error {
+func (g *GoGit) pull() (bool, error) {
 	path := dd.Val(g.config.WorkDir)
 	g.logger.Log("[go-git]", "pull repo ->", path)
 
 	r, err := gg.PlainOpen(path)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	w, err := r.Worktree()
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return w.Pull(&gg.PullOptions{
+	err = w.Pull(&gg.PullOptions{
 		Progress: io.Discard,
 		Auth: &gghttp.BasicAuth{
 			Username: "dummy",
 			Password: dd.Val(g.config.Token),
 		},
 	})
+
+	if err == gg.NoErrAlreadyUpToDate {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
 }

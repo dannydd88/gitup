@@ -3,7 +3,6 @@ module github.com/dannydd88/gitup
 go 1.22
 
 require (
-	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/dannydd88/dd-go v0.2.4
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/urfave/cli/v2 v2.27.1
@@ -16,7 +15,6 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
-	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect

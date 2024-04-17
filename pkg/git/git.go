@@ -13,6 +13,7 @@ type Git interface {
 	// Path - current git repo path
 	Path() *string
 
-	// Sync - Syna a git repo, clone if is a new one, update otherwise
-	Sync() error
+	// Sync - Sync a git repo, clone if is a new one, update otherwise
+	//       |bool| indicate that whether repo is updated
+	Sync() (bool, error)
 }
