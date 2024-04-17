@@ -36,7 +36,7 @@ func NewSyncCommand() *cli.Command {
 			}
 
 			// ). decide repository type
-			listor, err := buildRepoListor(config.RepoConfig)
+			api, err := buildRepoList(config.RepoConfig)
 			if err != nil {
 				return err
 			}
@@ -46,11 +46,13 @@ func NewSyncCommand() *cli.Command {
 			if existFlags(c, "group") {
 				// higher priority to use cli flag
 				syncConfig = &gitup.SyncConfig{
+					Token:  config.RepoConfig.Token,
 					Bare:   c.Bool("bare"),
 					Groups: dd.PtrSlice(c.StringSlice("group")),
 				}
 			} else if config.SyncConfig != nil {
 				syncConfig = &gitup.SyncConfig{
+					Token:  config.RepoConfig.Token,
 					Bare:   config.SyncConfig.Bare,
 					Groups: config.SyncConfig.Groups,
 				}
@@ -63,8 +65,8 @@ func NewSyncCommand() *cli.Command {
 			}
 
 			// ). construct syncer and run
-			(&gitup.Syncer{
-				Api:        listor,
+			(&gitup.Sync{
+				Api:        api,
 				SyncConfig: syncConfig,
 				Cwd:        config.Cwd,
 				TaskRunner: infra.GetWorkerPoolRunner(),

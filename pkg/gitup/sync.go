@@ -12,13 +12,14 @@ import (
 )
 
 type SyncConfig struct {
+	Token  *string
 	Bare   bool
 	Groups []*string
 }
 
-// Syncer
-type Syncer struct {
-	Api        RepoListor
+// Sync
+type Sync struct {
+	Api        RepoList
 	SyncConfig *SyncConfig
 	Cwd        *string
 	TaskRunner dd.TaskRunner
@@ -26,9 +27,9 @@ type Syncer struct {
 }
 
 // Go
-// Entrance of |Syncer|
-func (s *Syncer) Go() {
-	s.Logger.Log("[Syncer]", "Started...")
+// Entrance of |sync|
+func (s *Sync) Go() {
+	s.Logger.Log("[sync]", "Started...")
 
 	// ). prepare repos
 	var repos []*Repo
@@ -39,7 +40,7 @@ func (s *Syncer) Go() {
 		for _, g := range s.SyncConfig.Groups {
 			result, err := s.Api.ProjectsByGroup(g)
 			if err != nil {
-				s.Logger.Warn("[Syncer]", "Meet error ->", err)
+				s.Logger.Warn("[sync]", "Meet error ->", err)
 				continue
 			} else {
 				repos = append(repos, result...)
@@ -53,14 +54,19 @@ func (s *Syncer) Go() {
 	defer close(output)
 	wg := new(sync.WaitGroup)
 
-	s.Logger.Log("[Syncer]", "Start sync repos ->", len(repos))
+	s.Logger.Log("[sync]", "Start sync repos ->", len(repos))
 
 	// ). post git task to runner
 	for _, repo := range repos {
 		wg.Add(1)
 		url := dd.Ptr(repo.URL)
 		path := dd.Ptr(filepath.Join(dd.Val(s.Cwd), repo.FullPath))
-		git := git.NewGit(s.Logger, url, path, s.SyncConfig.Bare)
+		git := git.NewGoGit(s.Logger, &git.GitConfig{
+			URL:     url,
+			WorkDir: path,
+			Bare:    s.SyncConfig.Bare,
+			Token:   s.SyncConfig.Token,
+		})
 		c := dd.Bind3(doSyncGitRepo, git, output, wg)
 		s.TaskRunner.Post(c)
 	}
@@ -68,7 +74,7 @@ func (s *Syncer) Go() {
 	// ). async wait task done
 	go func() {
 		defer cancel()
-		s.Logger.Log("[Syncer]", "Waiting syncing repo...")
+		s.Logger.Log("[sync]", "Waiting syncing repo...")
 		wg.Wait()
 	}()
 
@@ -78,20 +84,20 @@ func (s *Syncer) Go() {
 		case m := <-output:
 			s.Logger.Log(m)
 		case <-ctx.Done():
-			s.Logger.Log("[Syncer]", "Done...")
+			s.Logger.Log("[sync]", "Done...")
 			alive = false
 		}
 	}
 }
 
-func doSyncGitRepo(g *git.Git, output chan string, wg *sync.WaitGroup) error {
+func doSyncGitRepo(g git.Git, output chan string, wg *sync.WaitGroup) error {
 	err := g.Sync()
 
 	var msg string
 	if err == nil {
-		msg = fmt.Sprintf("[Syncer] Finish sync[%s]", dd.Val(g.Path()))
+		msg = fmt.Sprintf("[sync] Finish sync[%s]", dd.Val(g.Path()))
 	} else {
-		msg = fmt.Sprintf("[Syncer] Error sync[%s] err[%s]", dd.Val(g.Path()), err)
+		msg = fmt.Sprintf("[sync] Error sync[%s] err[%s]", dd.Val(g.Path()), err)
 	}
 
 	output <- msg

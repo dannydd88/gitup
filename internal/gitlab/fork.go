@@ -7,15 +7,15 @@ import (
 	gitlabapi "github.com/xanzy/go-gitlab"
 )
 
-type gitlabForker struct {
-	gitlabListor
+type gitlabFork struct {
+	gitlabList
 	token string
 	host  string
 }
 
-// NewForker
+// NewGitlabFork
 // Helper function to create |RepoForker|'s gitlab implement
-func NewForker(config *infra.RepoConfig) (gitup.RepoForker, error) {
+func NewGitlabFork(config *infra.RepoConfig) (gitup.RepoFork, error) {
 	// ). construct gitlab client
 	c, err := newGitlabClient(config.Token, config.Host)
 	if err != nil {
@@ -23,8 +23,8 @@ func NewForker(config *infra.RepoConfig) (gitup.RepoForker, error) {
 	}
 
 	// ). construct
-	g := &gitlabForker{
-		gitlabListor: gitlabListor{
+	g := &gitlabFork{
+		gitlabList: gitlabList{
 			gitlabContext: gitlabContext{
 				apiClient: c,
 			},
@@ -38,7 +38,7 @@ func NewForker(config *infra.RepoConfig) (gitup.RepoForker, error) {
 	return g, nil
 }
 
-func (g *gitlabForker) Fork(r *gitup.Repo, group *string) (*gitup.Repo, error) {
+func (g *gitlabFork) Fork(r *gitup.Repo, group *string) (*gitup.Repo, error) {
 	// ). prepare fork options
 	opt := &gitlabapi.ForkProjectOptions{
 		NamespacePath: group,
@@ -49,7 +49,7 @@ func (g *gitlabForker) Fork(r *gitup.Repo, group *string) (*gitup.Repo, error) {
 	if err != nil {
 		return nil, err
 	}
-	infra.GetLogger().Log("[Gitlab]", "Fork finish",
+	infra.GetLogger().Log("[gitlab]", "Fork finish",
 		"http ->", resp.StatusCode,
 		"new project ->", p.ID,
 	)
@@ -63,7 +63,7 @@ func (g *gitlabForker) Fork(r *gitup.Repo, group *string) (*gitup.Repo, error) {
 		if err != nil {
 			return nil, err
 		}
-		infra.GetLogger().Log("[Gitlab]", "Disable project job token access",
+		infra.GetLogger().Log("[gitlab]", "Disable project job token access",
 			"http ->", resp.StatusCode,
 		)
 	}
@@ -77,7 +77,7 @@ func (g *gitlabForker) Fork(r *gitup.Repo, group *string) (*gitup.Repo, error) {
 	}, nil
 }
 
-func (g *gitlabForker) Rename(r *gitup.Repo, name *string) (*gitup.Repo, error) {
+func (g *gitlabFork) Rename(r *gitup.Repo, name *string) (*gitup.Repo, error) {
 	// ). prepare edit project options
 	opt := &gitlabapi.EditProjectOptions{
 		Name: name,
@@ -89,7 +89,7 @@ func (g *gitlabForker) Rename(r *gitup.Repo, name *string) (*gitup.Repo, error) 
 	if err != nil {
 		return nil, err
 	}
-	infra.GetLogger().Log("[Gitlab]", "Rename finish",
+	infra.GetLogger().Log("[gitlab]", "Rename finish",
 		"http ->", resp.StatusCode,
 		"project ->", r.ID,
 		"after ->", p.ID,
@@ -104,7 +104,7 @@ func (g *gitlabForker) Rename(r *gitup.Repo, name *string) (*gitup.Repo, error) 
 	}, nil
 }
 
-func (g *gitlabForker) Transfer(r *gitup.Repo, group *string) (*gitup.Repo, error) {
+func (g *gitlabFork) Transfer(r *gitup.Repo, group *string) (*gitup.Repo, error) {
 	// ). prepare transfer options
 	opt := &gitlabapi.TransferProjectOptions{
 		Namespace: group,
@@ -115,7 +115,7 @@ func (g *gitlabForker) Transfer(r *gitup.Repo, group *string) (*gitup.Repo, erro
 	if err != nil {
 		return nil, err
 	}
-	infra.GetLogger().Log("[Gitlab]", "Transfer finish",
+	infra.GetLogger().Log("[gitlab]", "Transfer finish",
 		"http ->", resp.StatusCode,
 		"project ->", r.ID,
 		"after ->", p.ID,
@@ -130,13 +130,13 @@ func (g *gitlabForker) Transfer(r *gitup.Repo, group *string) (*gitup.Repo, erro
 	}, nil
 }
 
-func (g *gitlabForker) DeleteForkRelationship(r *gitup.Repo) (bool, error) {
+func (g *gitlabFork) DeleteForkRelationship(r *gitup.Repo) (bool, error) {
 	// ). do delete fork relationship
 	resp, err := g.apiClient.Projects.DeleteProjectForkRelation(r.ID)
 	if err != nil {
 		return false, err
 	}
-	infra.GetLogger().Log("[Gitlab]", "Delete fork relationship finish",
+	infra.GetLogger().Log("[gitlab]", "Delete fork relationship finish",
 		"http -> ", resp.StatusCode,
 		"project -> ", r.ID,
 	)

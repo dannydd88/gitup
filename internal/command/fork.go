@@ -57,7 +57,7 @@ func NewForkCommand() *cli.Command {
 			}
 
 			// ). decide repository type
-			forker, err := buildRepoForker(config.RepoConfig)
+			api, err := buildRepoFork(config.RepoConfig)
 			if err != nil {
 				return err
 			}
@@ -122,8 +122,8 @@ func NewForkCommand() *cli.Command {
 			}
 
 			// ). construct forker and run
-			(&gitup.Forker{
-				Api:         forker,
+			(&gitup.Fork{
+				Api:         api,
 				ForkConfigs: forkConfigs,
 				TaskRunner:  infra.GetWorkerPoolRunner(),
 				Logger:      infra.GetLogger(),

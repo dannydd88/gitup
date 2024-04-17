@@ -9,20 +9,20 @@ type Repo struct {
 	FullPath string
 }
 
-// RepoListor represent a listor of all repositories
-type RepoListor interface {
+// RepoList - represent a set of list operations of all repositories
+type RepoList interface {
 	Projects() []*Repo
 
-	// ProjectsByGroup: List project by group name prefix match
+	// ProjectsByGroup - List project by group name prefix match
 	ProjectsByGroup(group *string) ([]*Repo, error)
 
-	// Project: Filter target project by specific group and name
+	// Project - Filter target project by specific group and name
 	Project(group, name *string) (*Repo, error)
 }
 
-// RepoForker represent a forker to fork any repositories
-type RepoForker interface {
-	RepoListor
+// RepoFork - represent a set of fork operations to fork any repositories
+type RepoFork interface {
+	RepoList
 
 	Fork(r *Repo, group *string) (*Repo, error)
 

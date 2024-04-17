@@ -16,9 +16,9 @@ type ForkConfig struct {
 	RmForkRelation *bool     `yaml:"rm-fork-relation,omitempty"`
 }
 
-// Forker
-type Forker struct {
-	Api         RepoForker
+// Fork
+type Fork struct {
+	Api         RepoFork
 	ForkConfigs []*ForkConfig
 	TaskRunner  dd.TaskRunner
 	Logger      dd.LevelLogger
@@ -34,9 +34,9 @@ type forkDetail struct {
 }
 
 // Go
-// Entrance of |Forker|
-func (f *Forker) Go() {
-	f.Logger.Log("[Forker]", "Started...")
+// Entrance of |fork|
+func (f *Fork) Go() {
+	f.Logger.Log("[fork]", "Started...")
 
 	// ). prepare context
 	ctx, cancel := context.WithCancel(context.Background())
@@ -49,7 +49,7 @@ func (f *Forker) Go() {
 		// ). check config
 		if len(fc.ToRepos) != 0 && len(fc.FromRepos) != len(fc.ToRepos) {
 			f.Logger.Warn(
-				"[Forker]",
+				"[fork]",
 				"find len(to-repos) != len(from-repos) error in from-group ->",
 				fc.FromGroup,
 				", skip this!",
@@ -62,7 +62,7 @@ func (f *Forker) Go() {
 			// ). find target repo
 			repo, err := f.Api.Project(fc.FromGroup, r)
 			if err != nil {
-				f.Logger.Warn("[Forker]", "finding source repo meet error ->", err)
+				f.Logger.Warn("[fork]", "finding source repo meet error ->", err)
 				continue
 			}
 
@@ -83,7 +83,7 @@ func (f *Forker) Go() {
 				detail.sameGroupFork = true
 				if detail.targetName == nil {
 					f.Logger.Warn(
-						"[Forker]",
+						"[fork]",
 						"same group fork [",
 						detail.source.Name,
 						"] without new repo name, skip this",
@@ -105,7 +105,7 @@ func (f *Forker) Go() {
 	// ). async wait task done
 	go func() {
 		defer cancel()
-		f.Logger.Log("[Forker]", "Waiting forking repo...")
+		f.Logger.Log("[fork]", "Waiting forking repo...")
 		wg.Wait()
 	}()
 
@@ -115,13 +115,13 @@ func (f *Forker) Go() {
 		case m := <-output:
 			f.Logger.Log(m)
 		case <-ctx.Done():
-			f.Logger.Log("[Forker]", "Done...")
+			f.Logger.Log("[fork]", "Done...")
 			alive = false
 		}
 	}
 }
 
-func doFork(api RepoForker, detail *forkDetail, output chan string, wg *sync.WaitGroup) error {
+func doFork(api RepoFork, detail *forkDetail, output chan string, wg *sync.WaitGroup) error {
 	// ). do fork
 	targetGroup := detail.targetGroup
 	if detail.sameGroupFork {
@@ -147,14 +147,14 @@ func doFork(api RepoForker, detail *forkDetail, output chan string, wg *sync.Wai
 	var msg string
 	if err == nil {
 		msg = fmt.Sprintf(
-			"[Forker] Fork success [%s]->[%s][%s]",
+			"[fork] Fork success [%s]->[%s][%s]",
 			detail.source.FullPath,
 			dd.Val(detail.targetGroup),
 			dd.Val(detail.targetName),
 		)
 	} else {
 		msg = fmt.Sprintf(
-			"[Forker] Fork error [%s]->[%s][%s] err[%s]",
+			"[fork] Fork error [%s]->[%s][%s] err[%s]",
 			detail.source.FullPath,
 			dd.Val(detail.targetGroup),
 			dd.Val(detail.targetName),
