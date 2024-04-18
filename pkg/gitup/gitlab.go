@@ -12,10 +12,14 @@ const (
 )
 
 type GitlabApi interface {
+	// Api - Returen the |gitlab| api instance for gitlab api access
 	Api() *gitlabapi.Client
+
+	// Logger - Return the current logger for logging
+	Logger() dd.LevelLogger
 }
 
-func NewGitlabApi(token, host *string) (GitlabApi, error) {
+func NewGitlabApi(token, host *string, logger dd.LevelLogger) (GitlabApi, error) {
 	// ). construct gitlab client
 	c, err := gitlabapi.NewClient(
 		dd.Val(token),
@@ -26,31 +30,38 @@ func NewGitlabApi(token, host *string) (GitlabApi, error) {
 	}
 
 	api := &gitlabContext{
-		apiClient: c,
+		api:    c,
+		logger: logger,
 	}
 
 	return api, nil
 }
 
 type gitlabContext struct {
-	apiClient *gitlabapi.Client
+	api    *gitlabapi.Client
+	logger dd.LevelLogger
 }
 
 func (g *gitlabContext) Api() *gitlabapi.Client {
-	return g.apiClient
+	return g.api
+}
+
+func (g *gitlabContext) Logger() dd.LevelLogger {
+	return g.logger
 }
 
 type GitlabConfig struct {
 	Host           *string
 	Token          *string
 	FilterArchived bool
+	Logger         dd.LevelLogger
 }
 
 // NewGitlabList
 // Helper function to create |RepoList| gitlab implement
 func NewGitlabList(config *GitlabConfig) (RepoList, error) {
 	// ). construct |GitlabApi|
-	api, err := NewGitlabApi(config.Token, config.Host)
+	api, err := NewGitlabApi(config.Token, config.Host, config.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +79,7 @@ func NewGitlabList(config *GitlabConfig) (RepoList, error) {
 // Helper function to create |RepoFork| gitlab implement
 func NewGitlabFork(config *GitlabConfig) (RepoFork, error) {
 	// ). construct |GitlabApi|
-	api, err := NewGitlabApi(config.Token, config.Host)
+	api, err := NewGitlabApi(config.Token, config.Host, config.Logger)
 	if err != nil {
 		return nil, err
 	}

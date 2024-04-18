@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dannydd88/gitup/internal/infra"
-
 	"github.com/dannydd88/dd-go"
 	gitlabapi "github.com/xanzy/go-gitlab"
 )
@@ -107,7 +105,7 @@ func (g *gitlabList) fetchProjects() error {
 			// Get the first page with projects.
 			ps, resp, err := g.Api().Projects.ListProjects(opt)
 			if err != nil {
-				infra.GetLogger().Log("[gitlab]", "List projects error", err)
+				g.Logger().Log("[gitlab]", "List projects error", err)
 				return
 			}
 
@@ -123,7 +121,7 @@ func (g *gitlabList) fetchProjects() error {
 		}
 	}()
 
-	infra.GetLogger().Log("[gitlab]", "Waiting fetching repo...")
+	g.Logger().Log("[gitlab]", "Waiting fetching repo...")
 
 	for alive := true; alive; {
 		select {
@@ -131,7 +129,7 @@ func (g *gitlabList) fetchProjects() error {
 			convertToRepo(&g.projects, ps)
 
 		case <-ctx.Done():
-			infra.GetLogger().Log("[gitlab]", "Done...")
+			g.Logger().Log("[gitlab]", "Done...")
 			alive = false
 		}
 	}

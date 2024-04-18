@@ -19,6 +19,7 @@ func buildRepoList(config *infra.RepoConfig) (gitup.RepoList, error) {
 			Host:           config.Host,
 			Token:          config.Token,
 			FilterArchived: config.FilterArchived,
+			Logger:         infra.GetLogger(),
 		})
 	default:
 		return nil, fmt.Errorf("unsupport repostory type")
@@ -35,6 +36,7 @@ func buildRepoFork(config *infra.RepoConfig) (gitup.RepoFork, error) {
 			Host:           config.Host,
 			Token:          config.Token,
 			FilterArchived: config.FilterArchived,
+			Logger:         infra.GetLogger(),
 		})
 	default:
 		return nil, fmt.Errorf("unsupport repostory type")
