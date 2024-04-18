@@ -11,16 +11,33 @@ const (
 	baseURL = "https://%s/api/v4"
 )
 
-type gitlabContext struct {
-	apiClient *gitlabapi.Client
+type GitlabApi interface {
+	Api() *gitlabapi.Client
 }
 
-func newGitlabClient(token, host *string) (*gitlabapi.Client, error) {
+func NewGitlabApi(token, host *string) (GitlabApi, error) {
+	// ). construct gitlab client
 	c, err := gitlabapi.NewClient(
 		dd.Val(token),
 		gitlabapi.WithBaseURL(fmt.Sprintf(baseURL, dd.Val(host))),
 	)
-	return c, err
+	if err != nil {
+		return nil, err
+	}
+
+	api := &gitlabContext{
+		apiClient: c,
+	}
+
+	return api, nil
+}
+
+type gitlabContext struct {
+	apiClient *gitlabapi.Client
+}
+
+func (g *gitlabContext) Api() *gitlabapi.Client {
+	return g.apiClient
 }
 
 type GitlabConfig struct {
@@ -32,17 +49,15 @@ type GitlabConfig struct {
 // NewGitlabList
 // Helper function to create |RepoList| gitlab implement
 func NewGitlabList(config *GitlabConfig) (RepoList, error) {
-	// ). construct gitlab client
-	c, err := newGitlabClient(config.Token, config.Host)
+	// ). construct |GitlabApi|
+	api, err := NewGitlabApi(config.Token, config.Host)
 	if err != nil {
 		return nil, err
 	}
 
 	// ). construct
 	g := &gitlabList{
-		gitlabContext: gitlabContext{
-			apiClient: c,
-		},
+		gitlab:         api,
 		projects:       make(map[string][]*Repo),
 		filterArchived: config.FilterArchived,
 	}
@@ -52,8 +67,8 @@ func NewGitlabList(config *GitlabConfig) (RepoList, error) {
 // NewGitlabFork
 // Helper function to create |RepoFork| gitlab implement
 func NewGitlabFork(config *GitlabConfig) (RepoFork, error) {
-	// ). construct gitlab client
-	c, err := newGitlabClient(config.Token, config.Host)
+	// ). construct |GitlabApi|
+	api, err := NewGitlabApi(config.Token, config.Host)
 	if err != nil {
 		return nil, err
 	}
@@ -61,9 +76,7 @@ func NewGitlabFork(config *GitlabConfig) (RepoFork, error) {
 	// ). construct
 	g := &gitlabFork{
 		gitlabList: gitlabList{
-			gitlabContext: gitlabContext{
-				apiClient: c,
-			},
+			gitlab:         api,
 			projects:       make(map[string][]*Repo),
 			filterArchived: config.FilterArchived,
 		},

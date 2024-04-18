@@ -16,7 +16,7 @@ func (g *gitlabFork) Fork(r *Repo, group *string) (*Repo, error) {
 	}
 
 	// ). do fork
-	p, resp, err := g.apiClient.Projects.ForkProject(r.ID, opt)
+	p, resp, err := g.gitlab.Api().Projects.ForkProject(r.ID, opt)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func (g *gitlabFork) Fork(r *Repo, group *string) (*Repo, error) {
 		opt := &gitlabapi.PatchProjectJobTokenAccessSettingsOptions{
 			Enabled: false,
 		}
-		resp, err := g.apiClient.JobTokenScope.PatchProjectJobTokenAccessSettings(p.ID, opt)
+		resp, err := g.gitlab.Api().JobTokenScope.PatchProjectJobTokenAccessSettings(p.ID, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +56,7 @@ func (g *gitlabFork) Rename(r *Repo, name *string) (*Repo, error) {
 	}
 
 	// ). do rename
-	p, resp, err := g.apiClient.Projects.EditProject(r.ID, opt)
+	p, resp, err := g.gitlab.Api().Projects.EditProject(r.ID, opt)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (g *gitlabFork) Transfer(r *Repo, group *string) (*Repo, error) {
 	}
 
 	// ). do transfer
-	p, resp, err := g.apiClient.Projects.TransferProject(r.ID, opt)
+	p, resp, err := g.gitlab.Api().Projects.TransferProject(r.ID, opt)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (g *gitlabFork) Transfer(r *Repo, group *string) (*Repo, error) {
 
 func (g *gitlabFork) DeleteForkRelationship(r *Repo) (bool, error) {
 	// ). do delete fork relationship
-	resp, err := g.apiClient.Projects.DeleteProjectForkRelation(r.ID)
+	resp, err := g.gitlab.Api().Projects.DeleteProjectForkRelation(r.ID)
 	if err != nil {
 		return false, err
 	}
