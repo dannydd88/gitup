@@ -1,44 +1,15 @@
-package gitlab
+package gitup
 
 import (
-	"github.com/dannydd88/dd-go"
 	"github.com/dannydd88/gitup/internal/infra"
-	"github.com/dannydd88/gitup/pkg/gitup"
 	gitlabapi "github.com/xanzy/go-gitlab"
 )
 
 type gitlabFork struct {
 	gitlabList
-	token string
-	host  string
 }
 
-// NewGitlabFork
-// Helper function to create |RepoForker|'s gitlab implement
-func NewGitlabFork(config *infra.RepoConfig) (gitup.RepoFork, error) {
-	// ). construct gitlab client
-	c, err := newGitlabClient(config.Token, config.Host)
-	if err != nil {
-		return nil, err
-	}
-
-	// ). construct
-	g := &gitlabFork{
-		gitlabList: gitlabList{
-			gitlabContext: gitlabContext{
-				apiClient: c,
-			},
-			projects:       make(map[string][]*gitup.Repo),
-			filterArchived: config.FilterArchived,
-		},
-		token: dd.Val(config.Token),
-		host:  dd.Val(config.Host),
-	}
-
-	return g, nil
-}
-
-func (g *gitlabFork) Fork(r *gitup.Repo, group *string) (*gitup.Repo, error) {
+func (g *gitlabFork) Fork(r *Repo, group *string) (*Repo, error) {
 	// ). prepare fork options
 	opt := &gitlabapi.ForkProjectOptions{
 		NamespacePath: group,
@@ -68,7 +39,7 @@ func (g *gitlabFork) Fork(r *gitup.Repo, group *string) (*gitup.Repo, error) {
 		)
 	}
 
-	return &gitup.Repo{
+	return &Repo{
 		ID:       p.ID,
 		Name:     p.Name,
 		Group:    p.Namespace.FullPath,
@@ -77,7 +48,7 @@ func (g *gitlabFork) Fork(r *gitup.Repo, group *string) (*gitup.Repo, error) {
 	}, nil
 }
 
-func (g *gitlabFork) Rename(r *gitup.Repo, name *string) (*gitup.Repo, error) {
+func (g *gitlabFork) Rename(r *Repo, name *string) (*Repo, error) {
 	// ). prepare edit project options
 	opt := &gitlabapi.EditProjectOptions{
 		Name: name,
@@ -95,7 +66,7 @@ func (g *gitlabFork) Rename(r *gitup.Repo, name *string) (*gitup.Repo, error) {
 		"after ->", p.ID,
 	)
 
-	return &gitup.Repo{
+	return &Repo{
 		ID:       p.ID,
 		Name:     p.Name,
 		Group:    p.Namespace.FullPath,
@@ -104,7 +75,7 @@ func (g *gitlabFork) Rename(r *gitup.Repo, name *string) (*gitup.Repo, error) {
 	}, nil
 }
 
-func (g *gitlabFork) Transfer(r *gitup.Repo, group *string) (*gitup.Repo, error) {
+func (g *gitlabFork) Transfer(r *Repo, group *string) (*Repo, error) {
 	// ). prepare transfer options
 	opt := &gitlabapi.TransferProjectOptions{
 		Namespace: group,
@@ -121,7 +92,7 @@ func (g *gitlabFork) Transfer(r *gitup.Repo, group *string) (*gitup.Repo, error)
 		"after ->", p.ID,
 	)
 
-	return &gitup.Repo{
+	return &Repo{
 		ID:       p.ID,
 		Name:     p.Name,
 		Group:    p.Namespace.FullPath,
@@ -130,7 +101,7 @@ func (g *gitlabFork) Transfer(r *gitup.Repo, group *string) (*gitup.Repo, error)
 	}, nil
 }
 
-func (g *gitlabFork) DeleteForkRelationship(r *gitup.Repo) (bool, error) {
+func (g *gitlabFork) DeleteForkRelationship(r *Repo) (bool, error) {
 	// ). do delete fork relationship
 	resp, err := g.apiClient.Projects.DeleteProjectForkRelation(r.ID)
 	if err != nil {

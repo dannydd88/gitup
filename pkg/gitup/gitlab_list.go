@@ -1,4 +1,4 @@
-package gitlab
+package gitup
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/dannydd88/gitup/internal/infra"
-	"github.com/dannydd88/gitup/pkg/gitup"
 
 	"github.com/dannydd88/dd-go"
 	gitlabapi "github.com/xanzy/go-gitlab"
@@ -19,42 +18,22 @@ const (
 
 type gitlabList struct {
 	gitlabContext
-	projects       map[string][]*gitup.Repo
+	projects       map[string][]*Repo
 	filterArchived bool
 }
 
-// NewGitlabList
-// Helper function to create a |RepoListor|'s gitlab implement
-func NewGitlabList(config *infra.RepoConfig) (gitup.RepoList, error) {
-	// ). construct gitlab client
-	c, err := newGitlabClient(config.Token, config.Host)
-	if err != nil {
-		return nil, err
-	}
-
-	// ). construct
-	g := &gitlabList{
-		gitlabContext: gitlabContext{
-			apiClient: c,
-		},
-		projects:       make(map[string][]*gitup.Repo),
-		filterArchived: config.FilterArchived,
-	}
-	return g, nil
-}
-
-func (g *gitlabList) Projects() []*gitup.Repo {
+func (g *gitlabList) Projects() []*Repo {
 	if len(g.projects) == 0 {
 		g.fetchProjects()
 	}
-	result := []*gitup.Repo{}
+	result := []*Repo{}
 	for _, v := range g.projects {
 		result = append(result, v...)
 	}
 	return result
 }
 
-func (g *gitlabList) ProjectsByGroup(group *string) ([]*gitup.Repo, error) {
+func (g *gitlabList) ProjectsByGroup(group *string) ([]*Repo, error) {
 	if len(g.projects) == 0 {
 		g.fetchProjects()
 	}
@@ -72,7 +51,7 @@ func (g *gitlabList) ProjectsByGroup(group *string) ([]*gitup.Repo, error) {
 	}
 	if subSearch {
 		// ). filter subgroup
-		subResult := []*gitup.Repo{}
+		subResult := []*Repo{}
 		for _, r := range result {
 			if strings.HasPrefix(r.FullPath, dd.Val(group)) {
 				subResult = append(subResult, r)
@@ -86,7 +65,7 @@ func (g *gitlabList) ProjectsByGroup(group *string) ([]*gitup.Repo, error) {
 	return result, nil
 }
 
-func (g *gitlabList) Project(group, name *string) (*gitup.Repo, error) {
+func (g *gitlabList) Project(group, name *string) (*Repo, error) {
 	// ). list projects with group
 	repos, err := g.ProjectsByGroup(group)
 	if err != nil {
@@ -160,10 +139,10 @@ func (g *gitlabList) fetchProjects() error {
 	return nil
 }
 
-func convertToRepo(base *map[string][]*gitup.Repo, projects []*gitlabapi.Project) {
+func convertToRepo(base *map[string][]*Repo, projects []*gitlabapi.Project) {
 	for _, p := range projects {
 		g := p.PathWithNamespace[:strings.IndexByte(p.PathWithNamespace, '/')]
-		r := &gitup.Repo{
+		r := &Repo{
 			ID:       p.ID,
 			URL:      p.HTTPURLToRepo,
 			Name:     strings.TrimSpace(p.Name),
@@ -174,7 +153,7 @@ func convertToRepo(base *map[string][]*gitup.Repo, projects []*gitlabapi.Project
 		ps, ok := (*base)[r.Group]
 		if !ok {
 			// the first repo insert about this group
-			(*base)[r.Group] = append([]*gitup.Repo{}, r)
+			(*base)[r.Group] = append([]*Repo{}, r)
 		} else {
 			(*base)[r.Group] = append(ps, r)
 		}
