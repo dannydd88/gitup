@@ -17,7 +17,7 @@ const (
 )
 
 type gitlabList struct {
-	gitlab         GitlabApi
+	GitlabApi
 	projects       map[string][]*Repo
 	filterArchived bool
 }
@@ -105,7 +105,7 @@ func (g *gitlabList) fetchProjects() error {
 
 		for {
 			// Get the first page with projects.
-			ps, resp, err := g.gitlab.Api().Projects.ListProjects(opt)
+			ps, resp, err := g.Api().Projects.ListProjects(opt)
 			if err != nil {
 				infra.GetLogger().Log("[gitlab]", "List projects error", err)
 				return

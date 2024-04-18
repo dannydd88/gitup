@@ -57,7 +57,7 @@ func NewGitlabList(config *GitlabConfig) (RepoList, error) {
 
 	// ). construct
 	g := &gitlabList{
-		gitlab:         api,
+		GitlabApi:      api,
 		projects:       make(map[string][]*Repo),
 		filterArchived: config.FilterArchived,
 	}
@@ -76,7 +76,7 @@ func NewGitlabFork(config *GitlabConfig) (RepoFork, error) {
 	// ). construct
 	g := &gitlabFork{
 		gitlabList: gitlabList{
-			gitlab:         api,
+			GitlabApi:      api,
 			projects:       make(map[string][]*Repo),
 			filterArchived: config.FilterArchived,
 		},
