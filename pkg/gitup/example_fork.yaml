@@ -4,4 +4,4 @@
   to-group: ""
   to-repos:
     - ""
-  rm-fork-relation: true
+  # rm-fork-relation: true
