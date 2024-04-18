@@ -13,7 +13,7 @@ type ForkConfig struct {
 	FromRepos      []*string `yaml:"from-repos"`
 	ToGroup        *string   `yaml:"to-group"`
 	ToRepos        []*string `yaml:"to-repos,omitempty"`
-	RmForkRelation *bool     `yaml:"rm-fork-relation,omitempty"`
+	RmForkRelation *bool     `yaml:"rm-fork-relation"`
 }
 
 // Fork
