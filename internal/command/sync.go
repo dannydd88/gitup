@@ -32,7 +32,7 @@ func NewSyncCommand() *cli.Command {
 
 			// ). check repo config
 			if config == nil || config.RepoConfig == nil || config.SyncConfig == nil {
-				return fmt.Errorf("[Sync] missing repo config")
+				return fmt.Errorf("[sync] missing repo config")
 			}
 
 			// ). decide repository type
@@ -58,7 +58,7 @@ func NewSyncCommand() *cli.Command {
 				}
 			} else {
 				return fmt.Errorf(
-					"[Sync] ERROR: should provide sync info using cli flag[%s] or in config file section[%s]",
+					"[sync] ERROR: should provide sync info using cli flag[%s] or in config file section[%s]",
 					"--group",
 					"sync",
 				)

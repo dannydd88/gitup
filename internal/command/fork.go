@@ -53,7 +53,7 @@ func NewForkCommand() *cli.Command {
 
 			// ). check repo config
 			if config == nil || config.RepoConfig == nil {
-				return fmt.Errorf("[Fork] missing repo config")
+				return fmt.Errorf("[fork] missing repo config")
 			}
 
 			// ). decide repository type
@@ -68,7 +68,7 @@ func NewForkCommand() *cli.Command {
 				// higher priority to use fork config file
 				path := ctx.String("forks")
 				if !dd.FileExists(dd.Ptr(path)) {
-					return fmt.Errorf("[Fork] cannot find config -> %s", path)
+					return fmt.Errorf("[fork] cannot find config -> %s", path)
 				}
 				data, err := os.ReadFile(path)
 				if err != nil {
@@ -105,7 +105,7 @@ func NewForkCommand() *cli.Command {
 				// ). check |ForkConfig|
 				if config.ToGroup == nil && len(config.ToRepos) == 0 {
 					return fmt.Errorf(
-						"[Fork] ERROR: shoud provide one of flag %s | %s",
+						"[fork] ERROR: shoud provide one of flag %s | %s",
 						"--to-group",
 						"--to-repo",
 					)
@@ -115,7 +115,7 @@ func NewForkCommand() *cli.Command {
 				forkConfigs = append(forkConfigs, config)
 			} else {
 				return fmt.Errorf(
-					"[Fork] ERROR: should provide fork info using file flag[%s] or cli flag[%s]",
+					"[fork] ERROR: should provide fork info using file flag[%s] or cli flag[%s]",
 					"--forks",
 					"--from-group & --from-repo & (one of --to-group|--to-repo)",
 				)
