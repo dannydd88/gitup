@@ -13,11 +13,11 @@ import (
 // GoGit - a set of git commands via local cli git
 type GoGit struct {
 	config *GitConfig
-	logger dd.Logger
+	logger dd.LevelLogger
 }
 
 // NewCLIGit - Init a new Git instance via cli git
-func NewGoGit(logger dd.Logger, config *GitConfig) Git {
+func NewGoGit(logger dd.LevelLogger, config *GitConfig) Git {
 	// make sure |path| is exist
 	if !dd.DirExists(config.WorkDir) {
 		os.MkdirAll(dd.Val(config.WorkDir), os.ModePerm)
@@ -58,7 +58,7 @@ func (g *GoGit) Sync() (bool, error) {
 
 func (g *GoGit) clone() (bool, error) {
 	path := dd.Val(g.config.WorkDir)
-	g.logger.Log("[go-git]", "Clone repo ->", path)
+	g.logger.Debug("[go-git]", "Clone repo ->", path)
 
 	_, err := gg.PlainClone(path, g.config.Bare, &gg.CloneOptions{
 		URL:      dd.Val(g.config.URL),
@@ -74,7 +74,7 @@ func (g *GoGit) clone() (bool, error) {
 
 func (g *GoGit) fetch() (bool, error) {
 	path := dd.Val(g.config.WorkDir)
-	g.logger.Log("[go-git]", "fetch repo ->", path)
+	g.logger.Debug("[go-git]", "fetch repo ->", path)
 
 	r, err := gg.PlainOpen(path)
 	if err != nil {
@@ -93,7 +93,7 @@ func (g *GoGit) fetch() (bool, error) {
 
 func (g *GoGit) pull() (bool, error) {
 	path := dd.Val(g.config.WorkDir)
-	g.logger.Log("[go-git]", "pull repo ->", path)
+	g.logger.Debug("[go-git]", "pull repo ->", path)
 
 	r, err := gg.PlainOpen(path)
 	if err != nil {

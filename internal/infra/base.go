@@ -18,7 +18,12 @@ func AppInit(ctx *cli.Context) error {
 	globalContext = GitUpContext{}
 
 	// ). init logger
-	globalContext.logger = dd.NewLevelLogger(dd.INFO)
+	debug := ctx.Bool("debug")
+	logLevel := dd.INFO
+	if debug {
+		logLevel = dd.DEBUG
+	}
+	globalContext.logger = dd.NewLevelLogger(logLevel)
 
 	return nil
 }

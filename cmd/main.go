@@ -29,6 +29,11 @@ func main() {
 				Value:   "gitup.yaml",
 				Usage:   "Load config from yaml file",
 			},
+			&cli.BoolFlag{
+				Name:  "debug",
+				Value: false,
+				Usage: "Debug mode",
+			},
 		},
 		Before: infra.AppInit,
 		Commands: []*cli.Command{
