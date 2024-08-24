@@ -19,7 +19,9 @@ func (g *gitlabFork) Fork(r *Repo, group *string) (*Repo, error) {
 	if err != nil {
 		return nil, err
 	}
-	g.Logger().Log("[gitlab]", "Fork finish",
+	g.Logger().Log(
+		TagGitlab,
+		"Fork finish",
 		"http ->", resp.StatusCode,
 		"new project ->", p.ID,
 	)
@@ -33,7 +35,9 @@ func (g *gitlabFork) Fork(r *Repo, group *string) (*Repo, error) {
 		if err != nil {
 			return nil, err
 		}
-		g.Logger().Log("[gitlab]", "Disable project job token access",
+		g.Logger().Log(
+			TagGitlab,
+			"Disable project job token access",
 			"http ->", resp.StatusCode,
 		)
 	}
@@ -59,7 +63,9 @@ func (g *gitlabFork) Rename(r *Repo, name *string) (*Repo, error) {
 	if err != nil {
 		return nil, err
 	}
-	g.Logger().Log("[gitlab]", "Rename finish",
+	g.Logger().Log(
+		TagGitlab,
+		"Rename finish",
 		"http ->", resp.StatusCode,
 		"project ->", r.ID,
 		"after ->", p.ID,
@@ -85,7 +91,9 @@ func (g *gitlabFork) Transfer(r *Repo, group *string) (*Repo, error) {
 	if err != nil {
 		return nil, err
 	}
-	g.Logger().Log("[gitlab]", "Transfer finish",
+	g.Logger().Log(
+		TagGitlab,
+		"Transfer finish",
 		"http ->", resp.StatusCode,
 		"project ->", r.ID,
 		"after ->", p.ID,
@@ -106,7 +114,9 @@ func (g *gitlabFork) DeleteForkRelationship(r *Repo) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	g.Logger().Log("[gitlab]", "Delete fork relationship finish",
+	g.Logger().Log(
+		TagGitlab,
+		"Delete fork relationship finish",
 		"http -> ", resp.StatusCode,
 		"project -> ", r.ID,
 	)

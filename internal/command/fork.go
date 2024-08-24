@@ -53,7 +53,7 @@ func NewForkCommand() *cli.Command {
 
 			// ). check repo config
 			if config == nil || config.RepoConfig == nil {
-				return fmt.Errorf("[fork] missing repo config")
+				return fmt.Errorf("%s missing repo config", gitup.TagFork)
 			}
 
 			// ). decide repository type
@@ -68,7 +68,7 @@ func NewForkCommand() *cli.Command {
 				// higher priority to use fork config file
 				path := ctx.String("forks")
 				if !dd.FileExists(dd.Ptr(path)) {
-					return fmt.Errorf("[fork] cannot find config -> %s", path)
+					return fmt.Errorf("%s cannot find config -> %s", gitup.TagFork, path)
 				}
 				data, err := os.ReadFile(path)
 				if err != nil {
@@ -105,7 +105,8 @@ func NewForkCommand() *cli.Command {
 				// ). check |ForkConfig|
 				if config.ToGroup == nil && len(config.ToRepos) == 0 {
 					return fmt.Errorf(
-						"[fork] ERROR: shoud provide one of flag %s | %s",
+						"%s ERROR: shoud provide one of flag %s | %s",
+						gitup.TagFork,
 						"--to-group",
 						"--to-repo",
 					)
@@ -115,7 +116,8 @@ func NewForkCommand() *cli.Command {
 				forkConfigs = append(forkConfigs, config)
 			} else {
 				return fmt.Errorf(
-					"[fork] ERROR: should provide fork info using file flag[%s] or cli flag[%s]",
+					"%s ERROR: should provide fork info using file flag[%s] or cli flag[%s]",
+					gitup.TagFork,
 					"--forks",
 					"--from-group & --from-repo & (one of --to-group|--to-repo)",
 				)

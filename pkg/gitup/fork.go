@@ -8,6 +8,10 @@ import (
 	"github.com/dannydd88/dd-go"
 )
 
+const (
+	TagFork = "[fork]"
+)
+
 type ForkConfig struct {
 	FromGroup      *string   `yaml:"from-group"`
 	FromRepos      []*string `yaml:"from-repos"`
@@ -36,7 +40,7 @@ type forkDetail struct {
 // Go
 // Entrance of |fork|
 func (f *Fork) Go() {
-	f.Logger.Log("[fork]", "Started...")
+	f.Logger.Log(TagFork, "Started...")
 
 	// ). prepare context
 	ctx, cancel := context.WithCancel(context.Background())
@@ -49,7 +53,7 @@ func (f *Fork) Go() {
 		// ). check config
 		if len(fc.ToRepos) != 0 && len(fc.FromRepos) != len(fc.ToRepos) {
 			f.Logger.Warn(
-				"[fork]",
+				TagFork,
 				"find len(to-repos) != len(from-repos) error in from-group ->",
 				fc.FromGroup,
 				", skip this!",
@@ -62,7 +66,7 @@ func (f *Fork) Go() {
 			// ). find target repo
 			repo, err := f.Api.Project(fc.FromGroup, r)
 			if err != nil {
-				f.Logger.Warn("[fork]", "finding source repo meet error ->", err)
+				f.Logger.Warn(TagFork, "finding source repo meet error ->", err)
 				continue
 			}
 
@@ -83,7 +87,7 @@ func (f *Fork) Go() {
 				detail.sameGroupFork = true
 				if detail.targetName == nil {
 					f.Logger.Warn(
-						"[fork]",
+						TagFork,
 						"same group fork [",
 						detail.source.Name,
 						"] without new repo name, skip this",
@@ -105,7 +109,7 @@ func (f *Fork) Go() {
 	// ). async wait task done
 	go func() {
 		defer cancel()
-		f.Logger.Log("[fork]", "Waiting forking repo...")
+		f.Logger.Log(TagFork, "Waiting forking repo...")
 		wg.Wait()
 	}()
 
@@ -115,7 +119,7 @@ func (f *Fork) Go() {
 		case m := <-output:
 			f.Logger.Log(m)
 		case <-ctx.Done():
-			f.Logger.Log("[fork]", "Done...")
+			f.Logger.Log(TagFork, "Done...")
 			alive = false
 		}
 	}
@@ -147,14 +151,16 @@ func doFork(api RepoFork, detail *forkDetail, output chan string, wg *sync.WaitG
 	var msg string
 	if err == nil {
 		msg = fmt.Sprintf(
-			"[fork] Fork success [%s]->[%s][%s]",
+			"%s Fork success [%s]->[%s][%s]",
+			TagFork,
 			detail.source.FullPath,
 			dd.Val(detail.targetGroup),
 			dd.Val(detail.targetName),
 		)
 	} else {
 		msg = fmt.Sprintf(
-			"[fork] Fork error [%s]->[%s][%s] err[%s]",
+			"%s Fork error [%s]->[%s][%s] err[%s]",
+			TagFork,
 			detail.source.FullPath,
 			dd.Val(detail.targetGroup),
 			dd.Val(detail.targetName),

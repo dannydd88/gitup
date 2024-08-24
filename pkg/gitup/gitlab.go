@@ -9,6 +9,8 @@ import (
 
 const (
 	baseURL = "https://%s/api/v4"
+
+	TagGitlab = "[gitlab]"
 )
 
 type GitlabApi interface {

@@ -11,6 +11,10 @@ import (
 	"github.com/dannydd88/dd-go"
 )
 
+const (
+	TagSync = "[sync]"
+)
+
 type SyncConfig struct {
 	Token  *string
 	Bare   bool
@@ -29,7 +33,7 @@ type Sync struct {
 // Go
 // Entrance of |sync|
 func (s *Sync) Go() {
-	s.Logger.Log("[sync]", "Started...")
+	s.Logger.Log(TagSync, "Started...")
 
 	// ). prepare repos
 	var repos []*Repo
@@ -40,7 +44,7 @@ func (s *Sync) Go() {
 		for _, g := range s.SyncConfig.Groups {
 			result, err := s.Api.ProjectsByGroup(g)
 			if err != nil {
-				s.Logger.Warn("[sync]", "Meet error ->", err)
+				s.Logger.Warn(TagSync, "Meet error ->", err)
 				continue
 			} else {
 				repos = append(repos, result...)
@@ -54,7 +58,7 @@ func (s *Sync) Go() {
 	defer close(output)
 	wg := new(sync.WaitGroup)
 
-	s.Logger.Log("[sync]", "Start sync repos ->", len(repos))
+	s.Logger.Log(TagSync, "Start sync repos ->", len(repos))
 
 	// ). post git task to runner
 	for _, repo := range repos {
@@ -74,7 +78,7 @@ func (s *Sync) Go() {
 	// ). async wait task done
 	go func() {
 		defer cancel()
-		s.Logger.Log("[sync]", "Waiting syncing repo...")
+		s.Logger.Log(TagSync, "Waiting syncing repo...")
 		wg.Wait()
 	}()
 
@@ -84,7 +88,7 @@ func (s *Sync) Go() {
 		case m := <-output:
 			s.Logger.Log(m)
 		case <-ctx.Done():
-			s.Logger.Log("[sync]", "Done...")
+			s.Logger.Log(TagSync, "Done...")
 			alive = false
 		}
 	}
@@ -101,9 +105,19 @@ func doSyncGitRepo(g git.Git, output chan string, wg *sync.WaitGroup) error {
 		} else {
 			updateMsg = "already-up-to-date"
 		}
-		msg = fmt.Sprintf("[sync] Finish sync[%s] [%s]", dd.Val(g.Path()), updateMsg)
+		msg = fmt.Sprintf(
+			"%s Finish sync[%s] [%s]",
+			TagSync,
+			dd.Val(g.Path()),
+			updateMsg,
+		)
 	} else {
-		msg = fmt.Sprintf("[sync] Error sync[%s] err[%s]", dd.Val(g.Path()), err)
+		msg = fmt.Sprintf(
+			"%s Error sync[%s] err[%s]",
+			TagSync,
+			dd.Val(g.Path()),
+			err,
+		)
 	}
 
 	output <- msg
