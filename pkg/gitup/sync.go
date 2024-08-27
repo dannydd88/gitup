@@ -33,7 +33,7 @@ type Sync struct {
 // Go
 // Entrance of |sync|
 func (s *Sync) Go() {
-	s.Logger.Log(TagSync, "Started...")
+	s.Logger.Info(TagSync, "Started...")
 
 	// ). prepare repos
 	var repos []*Repo
@@ -58,7 +58,7 @@ func (s *Sync) Go() {
 	defer close(output)
 	wg := new(sync.WaitGroup)
 
-	s.Logger.Log(TagSync, "Start sync repos ->", len(repos))
+	s.Logger.Info(TagSync, "Start sync repos ->", len(repos))
 
 	// ). post git task to runner
 	for _, repo := range repos {
@@ -78,7 +78,7 @@ func (s *Sync) Go() {
 	// ). async wait task done
 	go func() {
 		defer cancel()
-		s.Logger.Log(TagSync, "Waiting syncing repo...")
+		s.Logger.Info(TagSync, "Waiting syncing repo...")
 		wg.Wait()
 	}()
 
@@ -86,9 +86,9 @@ func (s *Sync) Go() {
 	for alive := true; alive; {
 		select {
 		case m := <-output:
-			s.Logger.Log(m)
+			s.Logger.Info(m)
 		case <-ctx.Done():
-			s.Logger.Log(TagSync, "Done...")
+			s.Logger.Info(TagSync, "Done...")
 			alive = false
 		}
 	}

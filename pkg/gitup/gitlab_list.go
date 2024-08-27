@@ -105,7 +105,7 @@ func (g *gitlabList) fetchProjects() error {
 			// Get the first page with projects.
 			ps, resp, err := g.Api().Projects.ListProjects(opt)
 			if err != nil {
-				g.Logger().Log(TagGitlab, "List projects error", err)
+				g.Logger().Info(TagGitlab, "List projects error", err)
 				return
 			}
 
@@ -121,7 +121,7 @@ func (g *gitlabList) fetchProjects() error {
 		}
 	}()
 
-	g.Logger().Log(TagGitlab, "Waiting fetching repo...")
+	g.Logger().Info(TagGitlab, "Waiting fetching repo...")
 
 	for alive := true; alive; {
 		select {
@@ -129,7 +129,7 @@ func (g *gitlabList) fetchProjects() error {
 			convertToRepo(&g.projects, ps)
 
 		case <-ctx.Done():
-			g.Logger().Log(TagGitlab, "Done...")
+			g.Logger().Info(TagGitlab, "Done...")
 			alive = false
 		}
 	}

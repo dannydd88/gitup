@@ -40,7 +40,7 @@ type forkDetail struct {
 // Go
 // Entrance of |fork|
 func (f *Fork) Go() {
-	f.Logger.Log(TagFork, "Started...")
+	f.Logger.Info(TagFork, "Started...")
 
 	// ). prepare context
 	ctx, cancel := context.WithCancel(context.Background())
@@ -109,7 +109,7 @@ func (f *Fork) Go() {
 	// ). async wait task done
 	go func() {
 		defer cancel()
-		f.Logger.Log(TagFork, "Waiting forking repo...")
+		f.Logger.Info(TagFork, "Waiting forking repo...")
 		wg.Wait()
 	}()
 
@@ -117,9 +117,9 @@ func (f *Fork) Go() {
 	for alive := true; alive; {
 		select {
 		case m := <-output:
-			f.Logger.Log(m)
+			f.Logger.Info(m)
 		case <-ctx.Done():
-			f.Logger.Log(TagFork, "Done...")
+			f.Logger.Info(TagFork, "Done...")
 			alive = false
 		}
 	}
