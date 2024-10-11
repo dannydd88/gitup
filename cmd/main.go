@@ -33,7 +33,7 @@ func main() {
 			&cli.StringFlag{
 				Name:  "ini-config",
 				Value: generateDefaultINIPath(),
-				Usage: "Load profile config from ini file (Default in ~/.config/gitup.ini)",
+				Usage: "Load profile config from ini file",
 			},
 			&cli.StringFlag{
 				Name:  "profile",
