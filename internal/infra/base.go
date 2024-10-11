@@ -25,16 +25,38 @@ func AppInit(ctx *cli.Context) error {
 	}
 	globalContext.logger = dd.NewLevelLogger(logLevel)
 
+	globalContext.logger.Debug("[app]", "AppInit finish")
 	return nil
 }
 
 func CommandInit(ctx *cli.Context) error {
 	// ). init config
 	{
-		globalContext.config = &Config{}
+		globalContext.config = new(Config)
 		err := dd.NewYAMLLoader[Config](dd.Ptr(ctx.String("config"))).Load(globalContext.config)
 		if err != nil {
 			return err
+		}
+	}
+
+	// ). init ini config
+	{
+		iniPath := ctx.String("ini-config")
+		profile := ctx.String("profile")
+		repoConfig := globalContext.config.RepoConfig
+		if repoConfig.Host == nil || repoConfig.Token == nil {
+			iniConfig := new(INIConfig)
+			err := dd.NewINILoader[INIConfig](dd.Ptr(iniPath), dd.Ptr(profile)).Load(iniConfig)
+			if err == nil {
+				if repoConfig.Host == nil {
+					repoConfig.Host = iniConfig.Host
+				}
+				if repoConfig.Token == nil {
+					repoConfig.Token = iniConfig.Token
+				}
+			} else {
+				return err
+			}
 		}
 	}
 
@@ -44,6 +66,7 @@ func CommandInit(ctx *cli.Context) error {
 			Logger: globalContext.logger,
 		})
 
+	globalContext.logger.Debug("[app]", "CommandInit finish")
 	return nil
 }
 

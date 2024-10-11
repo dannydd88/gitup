@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/dannydd88/gitup/internal/command"
 	"github.com/dannydd88/gitup/internal/infra"
@@ -29,6 +30,16 @@ func main() {
 				Value:   "gitup.yaml",
 				Usage:   "Load config from yaml file",
 			},
+			&cli.StringFlag{
+				Name:  "ini-config",
+				Value: generateDefaultINIPath(),
+				Usage: "Load profile config from ini file (Default in ~/.config/gitup.ini)",
+			},
+			&cli.StringFlag{
+				Name:  "profile",
+				Value: "default",
+				Usage: "Target profile that need to read from ini file",
+			},
 			&cli.BoolFlag{
 				Name:  "debug",
 				Value: false,
@@ -50,4 +61,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func generateDefaultINIPath() string {
+	iniConfig := "gitup.ini"
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return iniConfig
+	}
+
+	return filepath.Join(homeDir, ".config", iniConfig)
 }
