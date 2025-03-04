@@ -1,7 +1,7 @@
 package gitup
 
 import (
-	gitlabapi "github.com/xanzy/go-gitlab"
+	gitlabapi "gitlab.com/gitlab-org/api/client-go"
 )
 
 type gitlabFork struct {

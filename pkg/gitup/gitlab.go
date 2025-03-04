@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dannydd88/dd-go"
-	gitlabapi "github.com/xanzy/go-gitlab"
+	gitlabapi "gitlab.com/gitlab-org/api/client-go"
 )
 
 const (
@@ -71,7 +71,6 @@ func NewGitlabList(config *GitlabConfig) (RepoList, error) {
 	// ). construct
 	g := &gitlabList{
 		GitlabApi:      api,
-		projects:       make(map[string][]*Repo),
 		filterArchived: config.FilterArchived,
 	}
 	return g, nil
@@ -90,7 +89,6 @@ func NewGitlabFork(config *GitlabConfig) (RepoFork, error) {
 	g := &gitlabFork{
 		gitlabList: gitlabList{
 			GitlabApi:      api,
-			projects:       make(map[string][]*Repo),
 			filterArchived: config.FilterArchived,
 		},
 	}

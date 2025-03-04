@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/dannydd88/dd-go"
-	gitlabapi "github.com/xanzy/go-gitlab"
+	gitlabapi "gitlab.com/gitlab-org/api/client-go"
 )
 
 const (
@@ -16,25 +16,33 @@ const (
 
 type gitlabList struct {
 	GitlabApi
-	projects       map[string][]*Repo
 	filterArchived bool
 }
 
 func (g *gitlabList) Projects() []*Repo {
-	if len(g.projects) == 0 {
-		g.fetchProjects()
-	}
+	// ). prepare result
 	result := []*Repo{}
-	for _, v := range g.projects {
+
+	// ). fetch all projects
+	projects, err := g.fetchProjects(nil)
+	if err != nil {
+		return result
+	}
+
+	// ). build final result
+	for _, v := range dd.Val(projects) {
 		result = append(result, v...)
 	}
 	return result
 }
 
 func (g *gitlabList) ProjectsByGroup(group *string) ([]*Repo, error) {
-	if len(g.projects) == 0 {
-		g.fetchProjects()
+	// ). fetch projects by |group| string
+	projects, err := g.fetchProjects(group)
+	if err != nil {
+		return nil, err
 	}
+
 	// ). check if need to search subgroup
 	prefix := dd.Val(group)
 	subSearch := false
@@ -42,8 +50,9 @@ func (g *gitlabList) ProjectsByGroup(group *string) ([]*Repo, error) {
 		prefix = prefix[:strings.IndexByte(prefix, '/')]
 		subSearch = true
 	}
+
 	// ). find repos about target root group
-	result, ok := g.projects[prefix]
+	result, ok := dd.Val(projects)[prefix]
 	if !ok {
 		return nil, fmt.Errorf("[gitlab] Not find projects in %s", dd.Val(group))
 	}
@@ -80,7 +89,7 @@ func (g *gitlabList) Project(group, name *string) (*Repo, error) {
 	return nil, fmt.Errorf("[gitlab] Not find project[%s][%s]", dd.Val(group), dd.Val(name))
 }
 
-func (g *gitlabList) fetchProjects() error {
+func (g *gitlabList) fetchProjects(group *string) (*map[string][]*Repo, error) {
 	// ). init context & channel
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	dst := make(chan []*gitlabapi.Project, 1)
@@ -99,6 +108,10 @@ func (g *gitlabList) fetchProjects() error {
 		}
 		if g.filterArchived {
 			opt.Archived = dd.Ptr(false)
+		}
+		if group != nil {
+			opt.SearchNamespaces = dd.Ptr(true)
+			opt.Search = group
 		}
 
 		for {
@@ -121,12 +134,17 @@ func (g *gitlabList) fetchProjects() error {
 		}
 	}()
 
-	g.Logger().Info(TagGitlab, "Waiting fetching repo...")
+	g.Logger().Info(
+		TagGitlab,
+		"Waiting fetching repo...",
+		"[", "Group", "->", dd.Val(group), "]",
+	)
+	output := make(map[string][]*Repo)
 
 	for alive := true; alive; {
 		select {
 		case ps := <-dst:
-			convertToRepo(&g.projects, ps)
+			convertToRepo(dd.Ptr(output), ps)
 
 		case <-ctx.Done():
 			g.Logger().Info(TagGitlab, "Done...")
@@ -134,7 +152,7 @@ func (g *gitlabList) fetchProjects() error {
 		}
 	}
 
-	return nil
+	return dd.Ptr(output), nil
 }
 
 func convertToRepo(base *map[string][]*Repo, projects []*gitlabapi.Project) {
